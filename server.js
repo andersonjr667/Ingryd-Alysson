@@ -235,16 +235,13 @@ app.patch('/api/presentes/:id', async (req, res) => {
 
 // ── POST /api/pagamento/criar ───────────────────────────────
 app.post('/api/pagamento/criar', async (req, res) => {
-  if (!mpEnabled)
-    return res.status(503).json({ erro: 'Pagamentos não configurados. Adicione MP_ACCESS_TOKEN no .env.' });
-
   const { presenteId, presenteador } = req.body;
   if (!presenteId || !presenteador?.nome || !presenteador?.email)
     return res.status(400).json({ erro: 'presenteId, presenteador.nome e presenteador.email são obrigatórios.' });
 
   try {
-    const presente = await Presente.findOne({ id: Number(presenteId) });
-    if (!presente)          return res.status(404).json({ erro: 'Presente não encontrado.' });
+    const presente = await Presente.findOne({ id: Number(presenteId) }).lean();
+    if (!presente) return res.status(404).json({ erro: 'Presente não encontrado.' });
     if (presente.reservado) return res.status(409).json({ erro: 'Este presente já foi reservado.' });
 
     const baseUrl = resolveBaseUrl(req);
@@ -270,9 +267,6 @@ app.post('/api/pagamento/criar', async (req, res) => {
           notification_url: `${baseUrl}/api/pagamento/webhook`,
           external_reference: String(presente.id),
           statement_descriptor: 'CASAMENTO',
-          payment_methods: {
-            excluded_payment_types: [{ id: 'ticket' }],
-          },
         };
 
         const response = await new Promise((resolve, reject) => {
@@ -322,16 +316,16 @@ app.post('/api/pagamento/criar', async (req, res) => {
     await Presente.findOneAndUpdate({ id: presente.id }, {
       $set: {
         'pagamento.preferenceId': preferenceId,
-        'pagamento.status':       'pending',
-        'presenteador.nome':      presenteador.nome,
-        'presenteador.email':     presenteador.email,
+        'pagamento.status': 'pending',
+        'presenteador.nome': presenteador.nome,
+        'presenteador.email': presenteador.email,
       },
     });
 
     res.json({ checkoutUrl, sandboxUrl: checkoutUrl, preferenceId });
   } catch (err) {
     console.error('[PAGAMENTO/CRIAR] Erro detalhado:', err?.response?.body || err);
-    res.status(500).json({ erro: 'Erro ao criar pagamento.', detalhe: err?.response?.body?.message || err?.message || 'Falha inesperada' });
+    res.status(500).json({ erro: 'Erro ao criar pagamento.', detalhe: err?.message || 'Falha inesperada' });
   }
 });
 
@@ -431,7 +425,7 @@ app.post('/api/pagamento/confirmar', async (req, res) => {
   if (!presenteId) return res.status(400).json({ erro: 'presenteId é obrigatório.' });
 
   try {
-    const presente = await Presente.findOne({ id: Number(presenteId) });
+    const presente = await Presente.findOne({ id: Number(presenteId) }).lean();
     if (!presente) return res.status(404).json({ erro: 'Presente não encontrado.' });
     if (presente.reservado) return res.status(409).json({ erro: 'Este presente já foi reservado.' });
 
