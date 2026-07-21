@@ -1,0 +1,342 @@
+/* ============================================================
+   PRESENTS.CSS — Estilos exclusivos da página de presentes
+   ============================================================ */
+
+/* --- HERO DA PÁGINA --- */
+.presents-hero {
+  padding: 120px 24px 64px;
+  text-align: center;
+  background: linear-gradient(180deg, var(--c-bg-alt) 0%, var(--c-bg) 100%);
+  position: relative;
+  overflow: hidden;
+}
+.presents-hero::before {
+  content: '';
+  position: absolute;
+  top: -60px; left: 50%;
+  transform: translateX(-50%);
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(243,216,199,0.4) 0%, transparent 70%);
+  pointer-events: none;
+}
+.presents-hero .sec-title { margin-bottom: 16px; }
+.presents-hero .sec-body  { margin-bottom: 32px; }
+
+.presents-stats {
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+  flex-wrap: wrap;
+  margin-top: 32px;
+}
+.stat-item {
+  text-align: center;
+}
+.stat-num {
+  font-family: var(--f-serif);
+  font-size: 2rem;
+  color: var(--c-primary);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.stat-lbl {
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--c-text-soft);
+}
+
+/* --- FILTROS --- */
+.filters-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 20px 24px;
+  background: var(--c-card);
+  border-bottom: 1px solid var(--c-border);
+  position: sticky;
+  top: 60px;
+  z-index: 100;
+  box-shadow: var(--shadow-s);
+}
+@media (min-width: 769px) {
+  .filters-bar { top: 72px; padding: 16px 48px; }
+}
+.filters-left {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.filter-btn {
+  padding: 7px 18px;
+  border-radius: var(--r-pill);
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--c-text-soft);
+  border: 1px solid var(--c-border);
+  background: transparent;
+  transition: all 0.25s;
+  cursor: pointer;
+}
+.filter-btn:hover, .filter-btn.active {
+  background: var(--c-primary);
+  color: var(--c-text-inv);
+  border-color: var(--c-primary);
+}
+.filters-count {
+  font-size: 0.8rem;
+  color: var(--c-text-soft);
+  white-space: nowrap;
+}
+.filters-count strong { color: var(--c-primary); }
+
+/* --- GRID DE PRESENTES --- */
+.gifts-section { padding: 48px 20px 80px; }
+.gifts-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  max-width: 1140px;
+  margin: 0 auto;
+}
+@media (min-width: 560px) {
+  .gifts-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (min-width: 900px) {
+  .gifts-grid { grid-template-columns: repeat(3, 1fr); gap: 24px; }
+}
+@media (min-width: 1100px) {
+  .gifts-grid { grid-template-columns: repeat(4, 1fr); }
+}
+
+/* --- CARD DE PRESENTE --- */
+.gift-card {
+  background: var(--c-card);
+  border-radius: var(--r-l);
+  border: 1px solid var(--c-border);
+  box-shadow: var(--shadow-s);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.35s cubic-bezier(0.16,1,0.3,1),
+              box-shadow 0.35s cubic-bezier(0.16,1,0.3,1);
+  position: relative;
+}
+.gift-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-l);
+}
+.gift-card.reserved {
+  opacity: 0.65;
+  pointer-events: none;
+}
+.gift-card.reserved::after {
+  content: 'Reservado';
+  position: absolute;
+  top: 12px; right: 12px;
+  background: var(--c-text);
+  color: var(--c-text-inv);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: var(--r-pill);
+}
+
+.gift-img {
+  width: 100%;
+  aspect-ratio: 4/3;
+  overflow: hidden;
+  background: var(--c-bg-alt);
+  position: relative;
+}
+.gift-img img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+.gift-card:hover .gift-img img { transform: scale(1.07); }
+
+.gift-img-placeholder {
+  width: 100%; height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--c-text-soft);
+  opacity: 0.4;
+}
+.gift-img-placeholder svg { width: 36px; height: 36px; }
+.gift-img-placeholder span {
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.gift-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 8px;
+}
+.gift-num {
+  font-size: 0.68rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--c-accent);
+  font-weight: 500;
+}
+.gift-name {
+  font-family: var(--f-serif);
+  font-size: 1.1rem;
+  color: var(--c-text);
+  line-height: 1.35;
+  font-weight: 500;
+  flex: 1;
+}
+.gift-price {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--c-primary);
+  font-family: var(--f-sans);
+}
+.gift-availability {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+.gift-availability .dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.gift-availability.available { color: var(--c-accent); }
+.gift-availability.available .dot { background: var(--c-accent); }
+.gift-availability.reserved-status { color: var(--c-text-soft); }
+.gift-availability.reserved-status .dot { background: var(--c-text-soft); }
+
+.gift-footer {
+  padding: 0 20px 20px;
+}
+.gift-footer .btn { font-size: 0.82rem; padding: 11px 20px; }
+
+/* --- MODAL DE CONFIRMAÇÃO --- */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(45, 30, 32, 0.55);
+  backdrop-filter: blur(4px);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+.modal-overlay.open {
+  opacity: 1;
+  pointer-events: all;
+}
+.modal {
+  background: var(--c-card);
+  border-radius: var(--r-l);
+  padding: 40px 32px;
+  max-width: 440px;
+  width: 100%;
+  box-shadow: var(--shadow-l);
+  text-align: center;
+  transform: scale(0.92) translateY(16px);
+  transition: transform 0.35s cubic-bezier(0.16,1,0.3,1);
+}
+.modal-overlay.open .modal {
+  transform: scale(1) translateY(0);
+}
+.modal-icon {
+  width: 64px; height: 64px;
+  background: var(--c-primary-ghost);
+  border-radius: 50%;
+  color: var(--c-primary);
+  margin: 0 auto 20px;
+}
+.modal-title {
+  font-family: var(--f-serif);
+  font-size: 1.6rem;
+  color: var(--c-primary);
+  margin-bottom: 10px;
+}
+.modal-gift-name {
+  font-size: 0.9rem;
+  color: var(--c-text-soft);
+  margin-bottom: 6px;
+}
+.modal-price {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--c-primary);
+  font-family: var(--f-serif);
+  margin-bottom: 24px;
+}
+.modal-form { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+.modal-input {
+  width: 100%;
+  padding: 13px 16px;
+  border: 1.5px solid var(--c-border);
+  border-radius: var(--r-m);
+  font-family: var(--f-sans);
+  font-size: 0.9rem;
+  color: var(--c-text);
+  background: var(--c-bg);
+  outline: none;
+  transition: border-color 0.25s;
+}
+.modal-input:focus { border-color: var(--c-primary); }
+.modal-notice {
+  font-size: 0.8rem;
+  color: var(--c-text-soft);
+  margin-bottom: 20px;
+  line-height: 1.6;
+}
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+.modal-actions .btn {
+  flex: 1;
+}
+.modal-close {
+  position: absolute;
+  top: 16px; right: 16px;
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: var(--c-bg);
+  color: var(--c-text-soft);
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.25s;
+  cursor: pointer;
+  border: none;
+}
+.modal-close:hover { background: var(--c-primary); color: var(--c-text-inv); }
+.modal { position: relative; }
+
+/* --- EMPTY STATE --- */
+.gifts-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 80px 20px;
+  color: var(--c-text-soft);
+}
+.gifts-empty svg { margin: 0 auto 16px; opacity: 0.3; }
+.gifts-empty p { font-size: 1rem; }

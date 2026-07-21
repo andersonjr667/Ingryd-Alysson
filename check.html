@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Diagnóstico - Site Casamento</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f5f5f5;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    .container { max-width: 900px; margin: 0 auto; }
+    h1 { color: #333; margin: 30px 0 20px; border-bottom: 2px solid #581825; padding-bottom: 10px; }
+    .section {
+      background: white;
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .test {
+      padding: 12px;
+      margin: 8px 0;
+      border-radius: 4px;
+      border-left: 4px solid #ccc;
+    }
+    .test.pass { background: #d4edda; border-left-color: #28a745; }
+    .test.fail { background: #f8d7da; border-left-color: #dc3545; }
+    .test.info { background: #d1ecf1; border-left-color: #17a2b8; }
+    .test-label { font-weight: 600; }
+    .test-value { font-size: 12px; color: #666; margin-top: 4px; }
+    code {
+      background: #f4f4f4;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: monospace;
+    }
+    .button-group { margin-top: 20px; }
+    a.btn {
+      display: inline-block;
+      padding: 10px 20px;
+      margin: 5px;
+      background: #581825;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+    a.btn:hover { background: #3f0e16; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔍 Diagnóstico - Site de Casamento</h1>
+
+    <div class="section">
+      <h2>✅ Verificações de Funcionamento</h2>
+      <div id="tests"></div>
+    </div>
+
+    <div class="section">
+      <h2>🔗 Links de Teste</h2>
+      <div class="button-group">
+        <a class="btn" href="/index.html" target="_blank">📄 Home</a>
+        <a class="btn" href="/presents.html" target="_blank">🎁 Presentes</a>
+        <a class="btn" href="/teste-presentes.html" target="_blank">🧪 Teste Presentes</a>
+        <a class="btn" href="/diagnostico.html" target="_blank">🔍 Outro Diagnóstico</a>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>📋 Informações do Sistema</h2>
+      <div id="info"></div>
+    </div>
+  </div>
+
+  <script>
+    const tests = [];
+
+    // Teste 1: API Presentes
+    async function testAPI() {
+      try {
+        const res = await fetch('/api/presentes');
+        if (res.ok) {
+          const data = await res.json();
+          tests.push({
+            name: '🎁 API Presentes',
+            pass: true,
+            detail: `${data.length} presentes carregados`
+          });
+        } else {
+          tests.push({
+            name: '🎁 API Presentes',
+            pass: false,
+            detail: `HTTP ${res.status}`
+          });
+        }
+      } catch (e) {
+        tests.push({
+          name: '🎁 API Presentes',
+          pass: false,
+          detail: e.message
+        });
+      }
+    }
+
+    // Teste 2: Arquivo HTML
+    async function testHTML() {
+      try {
+        const res = await fetch('/presents.html');
+        const html = await res.text();
+        const hasGrid = html.includes('id="giftsGrid"');
+        const hasScript = html.includes('presents.js');
+        
+        tests.push({
+          name: '📄 Arquivo presents.html',
+          pass: hasGrid && hasScript,
+          detail: `Grid: ${hasGrid ? '✓' : '✗'}, Script: ${hasScript ? '✓' : '✗'}`
+        });
+      } catch (e) {
+        tests.push({
+          name: '📄 Arquivo presents.html',
+          pass: false,
+          detail: e.message
+        });
+      }
+    }
+
+    // Teste 3: JavaScript
+    async function testJS() {
+      try {
+        const res = await fetch('/js/presents.js');
+        const code = await res.text();
+        const hasInit = code.includes('Presents.init');
+        const hasCreateCard = code.includes('createCard');
+        
+        tests.push({
+          name: '📜 JavaScript presents.js',
+          pass: hasInit && hasCreateCard,
+          detail: `Init: ${hasInit ? '✓' : '✗'}, CreateCard: ${hasCreateCard ? '✓' : '✗'}`
+        });
+      } catch (e) {
+        tests.push({
+          name: '📜 JavaScript presents.js',
+          pass: false,
+          detail: e.message
+        });
+      }
+    }
+
+    // Teste 4: CSS
+    async function testCSS() {
+      try {
+        const res = await fetch('/css/home.css');
+        const css = await res.text();
+        const hasHistoria = css.includes('#historia');
+        
+        tests.push({
+          name: '🎨 CSS home.css',
+          pass: hasHistoria,
+          detail: `Seção história: ${hasHistoria ? '✓' : '✗'}`
+        });
+      } catch (e) {
+        tests.push({
+          name: '🎨 CSS home.css',
+          pass: false,
+          detail: e.message
+        });
+      }
+    }
+
+    // Teste 5: DOM Elements
+    function testDOM() {
+      const elements = {
+        'giftsGrid': document.getElementById('giftsGrid'),
+        'toast': document.getElementById('toast'),
+        'modalOverlay': document.getElementById('modalOverlay')
+      };
+
+      const found = Object.values(elements).filter(e => e).length;
+      
+      tests.push({
+        name: '🏗️ Elementos DOM',
+        pass: found === 3,
+        detail: `${found}/3 elementos encontrados`
+      });
+    }
+
+    // Teste 6: Window Objects
+    function testWindow() {
+      const hasApp = typeof window.App !== 'undefined';
+      const hasPresents = typeof window.Presents !== 'undefined';
+      
+      tests.push({
+        name: '🔧 Objetos Window',
+        pass: hasApp && hasPresents,
+        detail: `App: ${hasApp ? '✓' : '✗'}, Presents: ${hasPresents ? '✓' : '✗'}`
+      });
+    }
+
+    // Render tests
+    async function runTests() {
+      await testAPI();
+      await testHTML();
+      await testJS();
+      await testCSS();
+      testDOM();
+      testWindow();
+
+      const testsDiv = document.getElementById('tests');
+      tests.forEach(test => {
+        const div = document.createElement('div');
+        div.className = `test ${test.pass ? 'pass' : 'fail'}`;
+        div.innerHTML = `
+          <div class="test-label">${test.pass ? '✅' : '❌'} ${test.name}</div>
+          <div class="test-value">${test.detail}</div>
+        `;
+        testsDiv.appendChild(div);
+      });
+
+      // Render info
+      const infoDiv = document.getElementById('info');
+      infoDiv.innerHTML = `
+        <div class="test info">
+          <div class="test-label">Navegador:</div>
+          <div class="test-value">${navigator.userAgent.substring(0, 80)}...</div>
+        </div>
+        <div class="test info">
+          <div class="test-label">URL:</div>
+          <div class="test-value">${window.location.href}</div>
+        </div>
+        <div class="test info">
+          <div class="test-label">Hora:</div>
+          <div class="test-value">${new Date().toLocaleString('pt-BR')}</div>
+        </div>
+      `;
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', runTests);
+    } else {
+      runTests();
+    }
+  </script>
+</body>
+</html>

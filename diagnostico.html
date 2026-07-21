@@ -1,0 +1,143 @@
+<!-- Página de diagnóstico - abra no navegador para ver os logs do Presents.js -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Diagnóstico Presentes</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #1e1e1e;
+      color: #d4d4d4;
+      padding: 20px;
+    }
+    .container { max-width: 100%; margin: 0 auto; }
+    h1 { color: #4ec9b0; margin-bottom: 20px; }
+    .console {
+      background: #252526;
+      border: 1px solid #3e3e42;
+      border-radius: 5px;
+      padding: 15px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      max-height: 600px;
+      overflow-y: auto;
+      line-height: 1.5;
+    }
+    .log-line {
+      margin: 2px 0;
+      padding: 2px 5px;
+    }
+    .log-line.info { color: #9cdcfe; }
+    .log-line.success { color: #4ec9b0; }
+    .log-line.error { color: #f48771; }
+    .log-line.warn { color: #ce9178; }
+    .status {
+      display: flex;
+      gap: 15px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+    .status-item {
+      background: #2d2d30;
+      border: 1px solid #3e3e42;
+      padding: 10px 15px;
+      border-radius: 4px;
+      flex: 1;
+      min-width: 200px;
+    }
+    .status-item strong { color: #4ec9b0; }
+    .status-item.error strong { color: #f48771; }
+    .btn { padding: 10px 20px; background: #581825; color: white; border: none; border-radius: 4px; cursor: pointer; margin-top: 20px; font-size: 14px; }
+    .btn:hover { background: #3f0e16; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔍 Diagnóstico Presentes</h1>
+    <div class="console" id="console"></div>
+    <div class="status" id="status"></div>
+    <button class="btn" onclick="location.reload()">Recarregar Página</button>
+  </div>
+
+  <script>
+    const consoleDiv = document.getElementById('console');
+    const statusDiv = document.getElementById('status');
+    const logs = [];
+
+    function log(type, message) {
+      const line = document.createElement('div');
+      line.className = `log-line ${type}`;
+      const timestamp = new Date().toLocaleTimeString();
+      line.textContent = `[${timestamp}] [${type.toUpperCase()}] ${message}`;
+      consoleDiv.appendChild(line);
+      consoleDiv.scrollTop = consoleDiv.scrollHeight;
+      logs.push({ type, message, timestamp });
+    }
+
+    // Override console
+    console.log = (...args) => log('info', args.join(' '));
+    console.error = (...args) => log('error', args.join(' '));
+    console.warn = (...args) => log('warn', args.join(' '));
+
+    // Global error handler
+    window.addEventListener('error', (e) => {
+      log('error', `Erro não capturado: ${e.message} em ${e.filename}:${e.lineno}`);
+    });
+
+    // Promise rejection handler
+    window.addEventListener('unhandledrejection', (e) => {
+      log('error', `Promise rejection: ${e.reason}`);
+    });
+
+    log('info', 'Página de diagnóstico carregada');
+    log('info', `User Agent: ${navigator.userAgent.substring(0, 50)}...`);
+  </script>
+
+  <!-- Carrega app.js e presents.js -->
+  <script src="js/app.js?t=20260721"></script>
+  <script src="js/presents.js?t=20260721"></script>
+
+  <!-- Verifica status após 3 segundos -->
+  <script>
+    setTimeout(() => {
+      const status = [];
+      
+      // Verifica Presents
+      if (window.Presents) {
+        status.push({ ok: true, msg: '✅ Presents.js carregado' });
+      } else {
+        status.push({ ok: false, msg: '❌ Presents.js NÃO carregado' });
+      }
+      
+      // Verifica App
+      if (window.App) {
+        status.push({ ok: true, msg: '✅ App.js carregado' });
+      } else {
+        status.push({ ok: false, msg: '❌ App.js NÃO carregado' });
+      }
+      
+      // Verifica elementos do DOM
+      const giftsGrid = document.getElementById('giftsGrid');
+      if (giftsGrid && giftsGrid.children.length > 0) {
+        status.push({ ok: true, msg: `✅ Grid preenchido com ${giftsGrid.children.length} presentes` });
+      } else if (giftsGrid) {
+        status.push({ ok: false, msg: '❌ Grid encontrado mas vazio' });
+      } else {
+        status.push({ ok: false, msg: '❌ Grid não encontrado no DOM' });
+      }
+      
+      // Renderiza status
+      statusDiv.innerHTML = status.map(s => 
+        `<div class="status-item ${s.ok ? '' : 'error'}">
+          <strong>${s.msg}</strong>
+        </div>`
+      ).join('');
+      
+      log('info', 'Verificação de status completa');
+    }, 3000);
+  </script>
+</body>
+</html>

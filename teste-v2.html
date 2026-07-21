@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Teste Presentes v2</title>
+  <link rel="stylesheet" href="css/global.css">
+  <link rel="stylesheet" href="css/presents.css">
+</head>
+<body>
+
+<div id="giftsGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; padding: 20px; margin: 20px;">
+  <!-- Será preenchido por presents.js -->
+</div>
+
+<div id="toast"></div>
+
+<script src="js/app.js?v=1"></script>
+<script>
+// Mock do App para teste
+if (!window.App) {
+  window.App = {
+    init: () => {},
+    toast: (msg) => console.log('Toast:', msg),
+    observe: (el) => console.log('Observing:', el)
+  };
+}
+
+// Teste direto de carregamento
+console.log('=== TESTE DE CARREGAMENTO ===');
+console.log('1. DOM pronto?', document.readyState);
+console.log('2. giftsGrid existe?', !!document.getElementById('giftsGrid'));
+
+// Simula o que presents.js faz
+fetch('/api/presentes')
+  .then(res => res.json())
+  .then(data => {
+    console.log('3. Presentes carregados:', data.length);
+    
+    // Popula o grid manualmente para teste
+    const grid = document.getElementById('giftsGrid');
+    data.slice(0, 12).forEach(gift => {
+      const card = document.createElement('div');
+      card.style.border = '1px solid #ccc';
+      card.style.padding = '10px';
+      card.style.borderRadius = '8px';
+      card.innerHTML = `
+        <h3>${gift.nome}</h3>
+        <p>Preço: R$ ${(gift.preco / 100).toFixed(2)}</p>
+        <p>Status: ${gift.reservado ? 'Reservado' : 'Disponível'}</p>
+      `;
+      grid.appendChild(card);
+    });
+    console.log('4. Cards renderizados');
+  })
+  .catch(err => console.error('❌ Erro:', err));
+
+console.log('5. Script finalizado');
+</script>
+
+</body>
+</html>

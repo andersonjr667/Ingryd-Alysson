@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lista de Presentes — Alysson &amp; Ingyd</title>
+  <meta name="description" content="Escolha um presente especial para abençoar o novo lar de Alysson e Ingyd. Confira nossa lista completa." />
+  <meta name="theme-color" content="#581825" />
+
+  <!-- Open Graph -->
+  <meta property="og:title"       content="Lista de Presentes — Alysson &amp; Ingyd" />
+  <meta property="og:description" content="Escolha um presente especial para abençoar o novo lar de Alysson e Ingyd." />
+  <meta property="og:type"        content="website" />
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="images/favicon/favicon.png" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="css/global.css" />
+  <link rel="stylesheet" href="css/presents.css" />
+</head>
+
+<body>
+
+  <!-- ===== NAVBAR ===== -->
+  <nav class="nav" id="nav" role="navigation" aria-label="Menu principal">
+    <div class="nav-bar">
+      <a href="index.html" class="nav-brand" aria-label="Voltar ao início">A &amp; I</a>
+      <button class="ham" id="ham" aria-label="Abrir menu" aria-expanded="false" aria-controls="navMenu">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-menu" id="navMenu" role="menubar">
+        <li role="none"><a href="index.html"           role="menuitem">Início</a></li>
+        <li role="none"><a href="index.html#convite"   role="menuitem">Convite</a></li>
+        <li role="none"><a href="index.html#historia"  role="menuitem">História</a></li>
+        <li role="none"><a href="index.html#datas"     role="menuitem">Datas</a></li>
+        <li role="none"><a href="presents.html" class="active" role="menuitem">Presentes</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- ===== HERO ===== -->
+  <header class="presents-hero" aria-labelledby="presents-title">
+    <p class="sec-pre rv">Com Carinho</p>
+    <h1 class="sec-title rv rv-delay-1" id="presents-title">Lista de Presentes</h1>
+    <p class="sec-body rv rv-delay-2">
+      Escolhemos com carinho estes itens que farão parte do nosso novo lar e do nosso dia a dia.
+      Sinta-se à vontade para nos abençoar com qualquer um deles.
+    </p>
+
+    <div class="presents-stats rv rv-delay-3" aria-label="Estatísticas da lista">
+      <div class="stat-item">
+        <p class="stat-num" id="statTotal">42</p>
+        <p class="stat-lbl">Total</p>
+      </div>
+      <div class="stat-item">
+        <p class="stat-num" id="statAvailable">42</p>
+        <p class="stat-lbl">Disponíveis</p>
+      </div>
+      <div class="stat-item">
+        <p class="stat-num" id="statReserved">0</p>
+        <p class="stat-lbl">Reservados</p>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===== FILTROS ===== -->
+  <div class="filters-bar" role="toolbar" aria-label="Filtros">
+    <div class="filters-left">
+      <button class="filter-btn active" data-filter="all"       aria-pressed="true">Todos</button>
+      <button class="filter-btn"        data-filter="available" aria-pressed="false">Disponíveis</button>
+      <button class="filter-btn"        data-filter="reserved"  aria-pressed="false">Reservados</button>
+    </div>
+    <p class="filters-count">
+      Exibindo <strong id="giftsCount">42</strong> presentes
+    </p>
+  </div>
+
+  <!-- ===== GRID DE PRESENTES ===== -->
+  <main class="gifts-section" aria-label="Lista de presentes">
+    <div class="gifts-grid" id="giftsGrid" role="list">
+      <!-- Renderizado via presents.js -->
+    </div>
+  </main>
+
+  <!-- ===== MODAL DE RESERVA ===== -->
+  <div class="modal-overlay" id="modalOverlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal">
+      <button class="modal-close" id="modalCloseBtn" aria-label="Fechar">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M18 6L6 18M6 6l12 12"/>
+        </svg>
+      </button>
+
+      <div class="modal-icon ic" aria-hidden="true">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M20 12v10H4V12"/><path d="M2 7h20v5H2z"/><path d="M12 22V7"/>
+          <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/>
+          <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>
+        </svg>
+      </div>
+
+      <h2 class="modal-title" id="modalTitle">Reservar Presente</h2>
+      <p class="modal-gift-name" id="modalGiftName"></p>
+      <p class="modal-price"     id="modalGiftPrice"></p>
+
+      <div class="modal-form">
+        <input
+          type="text"
+          class="modal-input"
+          id="modalGuestName"
+          placeholder="Seu nome completo"
+          autocomplete="name"
+          aria-label="Seu nome completo"
+          required
+        />
+        <input
+          type="email"
+          class="modal-input"
+          id="modalGuestEmail"
+          placeholder="Seu e-mail"
+          autocomplete="email"
+          aria-label="Seu e-mail"
+          required
+        />
+      </div>
+
+      <p class="modal-notice">
+        Você será redirecionado ao Mercado Pago para concluir o pagamento com segurança.
+      </p>
+
+      <div class="modal-actions">
+        <button class="btn btn-o" id="modalCancelBtn">Cancelar</button>
+        <button class="btn btn-p" id="modalConfirmBtn">Ir para Pagamento</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="footer" role="contentinfo">
+    <p class="footer-names">Alysson &amp; Ingyd</p>
+    <p class="footer-date">DD &middot; MM &middot; AAAA</p>
+    <p class="footer-verse">
+      "Sobre tudo isto, porém, esteja o amor, que é o vínculo da perfeição."
+      <br />— Colossenses 3:14
+    </p>
+    <nav class="footer-links" aria-label="Links do rodapé">
+      <a href="index.html">Início</a>
+      <a href="index.html#convite">Convite</a>
+      <a href="index.html#historia">História</a>
+      <a href="presents.html">Presentes</a>
+    </nav>
+    <p class="footer-copy">Feito com carinho para celebrar esse momento único</p>
+  </footer>
+
+  <!-- Toast -->
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <!-- JS -->
+  <script src="js/app.js?t=20260721"></script>
+  <script src="js/presents.js?t=20260721"></script>
+</body>
+</html>

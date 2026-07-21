@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Teste Presentes</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    #log { background: #f0f0f0; padding: 15px; border-radius: 5px; max-height: 300px; overflow: auto; font-family: monospace; font-size: 12px; }
+    .gift-card { display: inline-block; padding: 10px; border: 1px solid #ccc; margin: 10px; }
+  </style>
+</head>
+<body>
+  <h1>Teste Presentes</h1>
+  <div id="log"></div>
+  
+  <div id="giftsGrid" role="list">
+    <!-- Será preenchido por presents.js -->
+  </div>
+  
+  <script>
+    // Criar um console.log alternative para ver o output na página
+    const logDiv = document.getElementById('log');
+    const originalLog = console.log;
+    const originalError = console.error;
+    
+    console.log = function(...args) {
+      originalLog(...args);
+      logDiv.innerHTML += args.join(' ') + '<br>';
+      logDiv.scrollTop = logDiv.scrollHeight;
+    };
+    
+    console.error = function(...args) {
+      originalError(...args);
+      logDiv.innerHTML += '<span style="color:red">❌ ' + args.join(' ') + '</span><br>';
+      logDiv.scrollTop = logDiv.scrollHeight;
+    };
+    
+    window.onerror = function(msg, url, lineNo, columnNo, error) {
+      console.error(`Erro: ${msg} em ${url}:${lineNo}:${columnNo}`, error);
+      return false;
+    };
+    
+    console.log('Página carregada');
+  </script>
+  
+  <!-- Mock do App.js -->
+  <script>
+    const App = (() => {
+      const observe = el => console.log('App.observe chamado para:', el.className);
+      const toast = msg => console.log('Toast:', msg);
+      const init = () => console.log('App.init chamado');
+      return { init, toast, observe };
+    })();
+    
+    console.log('App criado');
+  </script>
+  
+  <!-- Aqui vem o Presents.js -->
+  <script src="js/presents.js?t=20260721"></script>
+  
+</body>
+</html>

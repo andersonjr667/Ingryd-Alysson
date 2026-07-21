@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Debug Presentes</title>
+  <style>
+    body { font-family: monospace; padding: 20px; background: #1e1e1e; color: #d4d4d4; }
+    #console { background: #252526; padding: 15px; border-radius: 5px; max-height: 500px; overflow: auto; border: 1px solid #555; }
+    .log { margin: 3px 0; }
+    .error { color: #f48771; }
+    .success { color: #4ec9b0; }
+    .info { color: #9cdcfe; }
+    h1 { color: #ce9178; }
+  </style>
+</head>
+<body>
+  <h1>Debug Presentes</h1>
+  <div id="console"></div>
+  
+  <script>
+    const consoleDiv = document.getElementById('console');
+    
+    function addLog(type, ...args) {
+      const msg = args.join(' ');
+      const div = document.createElement('div');
+      div.className = `log ${type}`;
+      div.textContent = `[${type.toUpperCase()}] ${msg}`;
+      consoleDiv.appendChild(div);
+      consoleDiv.scrollTop = consoleDiv.scrollHeight;
+    }
+    
+    // Override console methods
+    console.log = (...args) => addLog('info', ...args);
+    console.error = (...args) => addLog('error', ...args);
+    console.warn = (...args) => addLog('warn', ...args);
+    
+    window.addEventListener('error', (event) => {
+      addLog('error', 'Erro não capturado:', event.message, event.filename + ':' + event.lineno);
+    });
+    
+    addLog('success', 'Página carregada - aguardando Presents.init...');
+  </script>
+  
+  <script src="js/presents.js?t=202607211"></script>
+  
+  <script>
+    setTimeout(() => {
+      if (window.Presents) {
+        addLog('info', 'window.Presents existe');
+      } else {
+        addLog('error', 'window.Presents NÃO existe!');
+      }
+      
+      const grid = document.getElementById('giftsGrid');
+      if (grid) {
+        addLog('success', 'giftsGrid encontrado, com ' + grid.children.length + ' filhos');
+      } else {
+        addLog('error', 'giftsGrid NÃO ENCONTRADO');
+      }
+    }, 2000);
+  </script>
+</body>
+</html>
