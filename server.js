@@ -8,11 +8,14 @@ const cors     = require('cors');
 const path     = require('path');
 
 const PORT      = process.env.PORT      || 3000;
-const BASE_URL  = process.env.BASE_URL  || `http://localhost:${PORT}`;
+const HOST      = process.env.HOST       || '0.0.0.0';
+const BASE_URL  = process.env.BASE_URL || process.env.RENDER_EXTERNAL_URL || process.env.RENDER_URL || `http://localhost:${PORT}`;
 const MP_TOKEN  = process.env.MP_ACCESS_TOKEN || '';
-const MONGO_URI = process.env.MONGODB_URI;
+const MONGO_URI = process.env.MONGODB_URI || '';
 
-if (!MONGO_URI) throw new Error('MONGODB_URI não definido no .env');
+if (!MONGO_URI) {
+  console.warn('⚠️ MONGODB_URI não configurado. O servidor seguirá em modo fallback sem banco.');
+}
 
 // Mercado Pago — inicializa só se o token estiver configurado
 let mpEnabled = false;
@@ -59,6 +62,26 @@ const presenteSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 const Presente = mongoose.model('Presente', presenteSchema);
+let dbReady = false;
+
+const normalizeGift = (gift) => ({
+  ...gift,
+  id: Number(gift.id),
+  preco: Number(gift.preco || 0),
+  reservado: Boolean(gift.reservado),
+  imagem: gift.imagem || '',
+  pagamento: gift.pagamento || {
+    status: null,
+    preferenceId: null,
+    paymentId: null,
+    metodo: null,
+    pagoEm: null,
+  },
+  presenteador: gift.presenteador || {
+    nome: null,
+    email: null,
+  },
+});
 
 // ============================================================
 // SEED — upsert: insere novos E atualiza nome/preco/imagem dos existentes
@@ -140,11 +163,19 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname)));
 
+app.get('/health', (req, res) => {
+  res.json({ ok: true, dbReady, baseUrl: BASE_URL });
+});
+
 // ── GET /api/presentes ──────────────────────────────────────
 app.get('/api/presentes', async (req, res) => {
+  if (!dbReady) {
+    return res.json(GIFTS_SEED.map(g => normalizeGift({ ...g, reservado: false })));
+  }
+
   try {
     const presentes = await Presente.find().sort({ id: 1 }).lean();
-    res.json(presentes);
+    res.json(presentes.map(normalizeGift));
   } catch {
     res.status(500).json({ erro: 'Erro ao buscar presentes.' });
   }
@@ -333,12 +364,19 @@ app.use((req, res) => res.status(404).sendFile(path.join(__dirname, '404.html'))
 // BOOT
 // ============================================================
 async function start() {
-  await mongoose.connect(MONGO_URI);
-  console.log('✅ MongoDB conectado.');
-  await seedDatabase();
-  app.listen(PORT, () => {
+  try {
+    await mongoose.connect(MONGO_URI, { serverSelectionTimeoutMS: 10000 });
+    dbReady = true;
+    console.log('✅ MongoDB conectado.');
+    await seedDatabase();
+  } catch (err) {
+    console.warn('⚠️ MongoDB indisponível. Iniciando em modo fallback:', err.message);
+  }
+
+  app.listen(PORT, HOST, () => {
     console.log(`🚀 Servidor em ${BASE_URL}`);
     console.log(`   Presentes: ${BASE_URL}/api/presentes`);
+    console.log(`   Health: ${BASE_URL}/health`);
   });
 }
 
