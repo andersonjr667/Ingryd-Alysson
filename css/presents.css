@@ -4,7 +4,7 @@
 
 /* --- HERO DA PÁGINA --- */
 .presents-hero {
-  padding: 120px 24px 64px;
+  padding: 80px 16px 40px;
   text-align: center;
   background: linear-gradient(180deg, var(--c-bg-alt) 0%, var(--c-bg) 100%);
   position: relative;
@@ -19,22 +19,25 @@
   background: radial-gradient(circle, rgba(243,216,199,0.4) 0%, transparent 70%);
   pointer-events: none;
 }
-.presents-hero .sec-title { margin-bottom: 16px; }
-.presents-hero .sec-body  { margin-bottom: 32px; }
+.presents-hero .sec-title { margin-bottom: 12px; }
+.presents-hero .sec-body  { margin-bottom: 24px; font-size: clamp(0.88rem, 2.5vw, 1rem); }
 
 .presents-stats {
   display: flex;
   justify-content: center;
-  gap: 32px;
+  gap: clamp(16px, 5vw, 32px);
   flex-wrap: wrap;
-  margin-top: 32px;
+  margin-top: 24px;
+  padding: 16px 0;
+  border-top: 1px solid rgba(122,139,77,0.12);
 }
 .stat-item {
   text-align: center;
+  min-width: 60px;
 }
 .stat-num {
   font-family: var(--f-serif);
-  font-size: 2rem;
+  font-size: clamp(1.5rem, 5vw, 2rem);
   color: var(--c-primary);
   line-height: 1;
   margin-bottom: 4px;
@@ -51,18 +54,21 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-  padding: 20px 24px;
+  gap: 8px;
+  padding: 10px 14px;
   background: var(--c-card);
   border-bottom: 1px solid var(--c-border);
   position: sticky;
-  top: 60px;
+  top: 56px;
   z-index: 100;
   box-shadow: var(--shadow-s);
 }
-@media (min-width: 769px) {
-  .filters-bar { top: 72px; padding: 16px 48px; }
+@media (min-width: 769px) { .filters-bar { top: 72px; padding: 14px 48px; } }
+@media (max-width: 480px) {
+  .filters-bar { flex-direction: column; align-items: stretch; gap: 8px; }
+  .filters-left { display: flex; gap: 6px; }
+  .filter-btn { flex: 1; text-align: center; padding: 9px 8px; font-size: 0.78rem; }
+  .filters-count { text-align: right; font-size: 0.75rem; }
 }
 .filters-left {
   display: flex;
@@ -70,9 +76,9 @@
   flex-wrap: wrap;
 }
 .filter-btn {
-  padding: 7px 18px;
+  padding: 8px 16px;
   border-radius: var(--r-pill);
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   font-weight: 500;
   letter-spacing: 0.04em;
   color: var(--c-text-soft);
@@ -80,6 +86,7 @@
   background: transparent;
   transition: all 0.25s;
   cursor: pointer;
+  min-height: 40px;
 }
 .filter-btn:hover, .filter-btn.active {
   background: var(--c-primary);
@@ -94,28 +101,31 @@
 .filters-count strong { color: var(--c-primary); }
 
 /* --- GRID DE PRESENTES --- */
-.gifts-section { padding: 48px 20px 80px; }
+.gifts-section { padding: 24px 12px 56px; }
 .gifts-grid {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 20px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
   max-width: 1140px;
   margin: 0 auto;
 }
+@media (max-width: 360px) {
+  .gifts-grid { grid-template-columns: 1fr; }
+}
 @media (min-width: 560px) {
-  .gifts-grid { grid-template-columns: repeat(2, 1fr); }
+  .gifts-grid { gap: 16px; }
 }
 @media (min-width: 900px) {
-  .gifts-grid { grid-template-columns: repeat(3, 1fr); gap: 24px; }
+  .gifts-grid { grid-template-columns: repeat(3, 1fr); gap: 20px; }
 }
 @media (min-width: 1100px) {
-  .gifts-grid { grid-template-columns: repeat(4, 1fr); }
+  .gifts-grid { grid-template-columns: repeat(4, 1fr); gap: 24px; }
 }
 
 /* --- CARD DE PRESENTE --- */
 .gift-card {
   background: var(--c-card);
-  border-radius: var(--r-l);
+  border-radius: var(--r-m);
   border: 1px solid var(--c-border);
   box-shadow: var(--shadow-s);
   overflow: hidden;
@@ -124,6 +134,9 @@
   transition: transform 0.35s cubic-bezier(0.16,1,0.3,1),
               box-shadow 0.35s cubic-bezier(0.16,1,0.3,1);
   position: relative;
+}
+@media (min-width: 560px) {
+  .gift-card { border-radius: var(--r-l); }
 }
 .gift-card:hover {
   transform: translateY(-5px);
@@ -179,29 +192,34 @@
 }
 
 .gift-body {
-  padding: 20px;
+  padding: 12px;
   display: flex;
   flex-direction: column;
   flex: 1;
-  gap: 8px;
+  gap: 5px;
 }
+@media (min-width: 560px) { .gift-body { padding: 16px; gap: 6px; } }
 .gift-num {
-  font-size: 0.68rem;
-  letter-spacing: 0.16em;
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--c-accent);
   font-weight: 500;
 }
 .gift-name {
   font-family: var(--f-serif);
-  font-size: 1.1rem;
+  font-size: clamp(0.88rem, 2.5vw, 1rem);
   color: var(--c-text);
-  line-height: 1.35;
+  line-height: 1.3;
   font-weight: 500;
   flex: 1;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 .gift-price {
-  font-size: 1.05rem;
+  font-size: clamp(0.9rem, 2.5vw, 1.05rem);
   font-weight: 600;
   color: var(--c-primary);
   font-family: var(--f-sans);
@@ -226,13 +244,22 @@
 .gift-availability.reserved-status .dot { background: var(--c-text-soft); }
 
 .gift-footer {
-  padding: 0 20px 20px;
+  padding: 0 12px 12px;
 }
-.gift-footer .btn { font-size: 0.82rem; padding: 11px 20px; }
+.gift-footer .btn {
+  font-size: 0.82rem;
+  padding: 11px 12px;
+  width: 100%;
+  min-height: 44px;
+}
+@media (min-width: 560px) {
+  .gift-footer { padding: 0 16px 16px; }
+  .gift-footer .btn { font-size: 0.85rem; padding: 12px 16px; min-height: 48px; }
+}
 
 /* --- CONTRIBUIÇÃO POR PIX --- */
 .contribution-section {
-  padding: 0 20px 80px;
+  padding: 0 12px 56px;
 }
 .contribution-card {
   max-width: 860px;
@@ -241,15 +268,15 @@
   border: 1px solid var(--c-border);
   border-radius: var(--r-l);
   box-shadow: var(--shadow-s);
-  padding: 32px;
+  padding: 20px 16px;
   display: grid;
-  gap: 20px;
+  gap: 14px;
 }
 .contribution-copy h2 {
   font-family: var(--f-serif);
-  font-size: clamp(1.6rem, 3vw, 2.1rem);
+  font-size: clamp(1.3rem, 4vw, 2.1rem);
   color: var(--c-primary);
-  margin: 8px 0 12px;
+  margin: 6px 0 10px;
 }
 .contribution-copy p:last-child {
   color: var(--c-text-soft);
@@ -281,6 +308,7 @@
   color: var(--c-text);
   padding: 14px 0;
   font-size: 1rem;
+  font-family: var(--f-sans);
 }
 .contribution-hint {
   font-size: 0.82rem;
@@ -313,16 +341,37 @@
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(45, 30, 32, 0.55);
-  backdrop-filter: blur(4px);
+  background: rgba(45, 30, 32, 0.6);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   z-index: 2000;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
-  padding: 20px;
+  padding: 0;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.3s ease;
+}
+@media (min-width: 600px) {
+  .modal-overlay { align-items: center; padding: 20px; }
+}
+@media (max-width: 599px) {
+  .modal {
+    border-radius: var(--r-l) var(--r-l) 0 0;
+    max-width: 100%;
+    padding: 24px 16px 32px;
+    /* handle bar visual */
+  }
+  .modal::before {
+    content: '';
+    display: block;
+    width: 36px;
+    height: 4px;
+    background: var(--c-border);
+    border-radius: 2px;
+    margin: 0 auto 20px;
+  }
 }
 .modal-overlay.open {
   opacity: 1;
@@ -331,16 +380,22 @@
 .modal {
   background: var(--c-card);
   border-radius: var(--r-l);
-  padding: 40px 32px;
+  padding: 32px 20px;
   max-width: 440px;
   width: 100%;
   box-shadow: var(--shadow-l);
   text-align: center;
-  transform: scale(0.92) translateY(16px);
-  transition: transform 0.35s cubic-bezier(0.16,1,0.3,1);
+  transform: translateY(100%);
+  transition: transform 0.4s cubic-bezier(0.16,1,0.3,1);
+}
+@media (min-width: 600px) {
+  .modal { transform: scale(0.92) translateY(16px); }
 }
 .modal-overlay.open .modal {
-  transform: scale(1) translateY(0);
+  transform: translateY(0);
+}
+@media (min-width: 600px) {
+  .modal-overlay.open .modal { transform: scale(1) translateY(0); }
 }
 .modal-icon {
   width: 64px; height: 64px;
@@ -351,9 +406,9 @@
 }
 .modal-title {
   font-family: var(--f-serif);
-  font-size: 1.6rem;
+  font-size: clamp(1.3rem, 4vw, 1.6rem);
   color: var(--c-primary);
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 .modal-gift-name {
   font-size: 0.9rem;
@@ -370,15 +425,16 @@
 .modal-form { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
 .modal-input {
   width: 100%;
-  padding: 13px 16px;
+  padding: 14px 16px;
   border: 1.5px solid var(--c-border);
   border-radius: var(--r-m);
   font-family: var(--f-sans);
-  font-size: 0.9rem;
+  font-size: 1rem;
   color: var(--c-text);
   background: var(--c-bg);
   outline: none;
   transition: border-color 0.25s;
+  -webkit-appearance: none;
 }
 .modal-input:focus { border-color: var(--c-primary); }
 .modal-notice {
