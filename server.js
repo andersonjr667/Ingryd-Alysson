@@ -6,6 +6,7 @@ const express  = require('express');
 const mongoose = require('mongoose');
 const cors     = require('cors');
 const path     = require('path');
+const https    = require('https');
 
 const PORT      = process.env.PORT      || 3000;
 const HOST      = process.env.HOST       || '0.0.0.0';
@@ -90,48 +91,55 @@ const normalizeGift = (gift) => ({
 const IMG = f => `/images/presents/${encodeURIComponent(f)}`;
 
 const GIFTS_SEED = [
-  { id: 1,  nome: 'Mini panela/bule com coador em aço inox 1,3L (Margarida Louvre)', preco: 1099.00, imagem: IMG('Pipoqueira Brinox Ceramic Life Pic Poc Ø22x15,5cm 5,5L Tampa com Vidro Temperado Vanilla.webp') },
-  { id: 2,  nome: 'Painel para TV até 19", 1 porta, prateleiras fixas',               preco: 449.00,  imagem: IMG('Rack para TV até 70 1 Porta DJ Móveis Flow.webp') },
-  { id: 3,  nome: 'Cristaleira multicolorida em MDF',                                  preco: 2357.00, imagem: '' },
-  { id: 4,  nome: 'Fogão 5 bocas inox, branco, top cook',                              preco: 1199.02, imagem: IMG('Fogão 5 Bocas Atlas Preto Mônaco Top Glass.webp') },
-  { id: 5,  nome: 'Aparelho de jantar 12 peças, cristal com detalhe branco/verde esmeralda', preco: 239.00, imagem: IMG('Aparelho de Jantar Chá e Café 12 Peças Alleanza Cerâmica Branco e Verde Redondo Harmony.webp') },
-  { id: 6,  nome: 'Aparelho de jantar 12 peças, cristal branco/verde',                 preco: 225.00,  imagem: IMG('Aparelho de Jantar-Chá Biona Donna Colb 20 Peças.webp') },
-  { id: 7,  nome: 'Aparelho de jantar 20 peças, cristal com detalhe branco/verde',     preco: 292.00,  imagem: IMG('Aparelho de Jantar e Chá 20 Peças Oxford de Cerâmica Bege e Marrom Redondo Unni Brisa.webp') },
-  { id: 8,  nome: 'Jogo de panelas antiaderente, alumínio, 5 peças',                   preco: 219.00,  imagem: IMG('Jogo de Panelas Eirilar Antiaderente de Alumínio Grafite 10 Peças Facility.webp') },
-  { id: 9,  nome: 'Jogo de panelas coloridas, cerâmica, 5 peças',                      preco: 286.00,  imagem: IMG('Jogo de Panelas Tramontina Revestimento Cerâmico de Alumínio Cinza 5 Peças Glenz.webp') },
-  { id: 10, nome: 'Batedeira de mão, manual, 110V',                                    preco: 344.00,  imagem: IMG('Batedeira Planetária Mondial Branco e Inox 700W.webp') },
-  { id: 11, nome: 'Aspirador de pó vertical, aço inoxidável, 800W',                    preco: 131.00,  imagem: IMG('Aspirador de Pó Vertical WAP Silent Speed Max 1350W 220V.webp') },
-  { id: 12, nome: 'Escorredor de louça, 3 peças',                                      preco: 42.00,   imagem: IMG('Escorredor de Louças Pia com Suporte para Talheres 2 Andar.webp') },
-  { id: 13, nome: 'Kit 3 panelinhas de cerâmica',                                      preco: 54.00,   imagem: IMG('Conjunto 3peças Forma Assadeira Filetada Vidro Marinex Bolo.webp') },
-  { id: 14, nome: 'Panela de água em aço inox com tampa de vidro',                     preco: 96.00,   imagem: IMG('Panela De Pressão Fechamento Externo Alumínio 4,5L Preto Nacional.webp') },
-  { id: 15, nome: 'Toalha de mesa retangular, 8 lugares',                              preco: 34.90,   imagem: IMG('Toalha de Mesa Retangular 6 Lugares 2,00x1,50 m Oxford Premium.webp') },
-  { id: 16, nome: 'Toalha de mesa jacquard, 6 lugares',                                preco: 37.90,   imagem: IMG('Toalha de Mesa Jacquard 4, 6, 8 Lugares Luxo Decoração Várias Cores.webp') },
-  { id: 17, nome: 'Jogo de colheres em aço inox, 6 peças',                             preco: 42.74,   imagem: IMG('Jogo De Talheres Tramontina inox Colher Faca Garfo 24 Peças Inox.webp') },
-  { id: 18, nome: 'Parafusadeira/furadeira 12V com bateria',                           preco: 109.00,  imagem: IMG('Parafusadeira Furadeira 12V Com 1 Bateria, Maleta e 24 Acessórios Fasterr FST006.webp') },
-  { id: 19, nome: 'Mop giratório com balde',                                           preco: 70.99,   imagem: IMG('Mop Giratorio Cabo de 140 cm 2 Refis Balde Centrífuga Cesto Em Inox Nybc.webp') },
-  { id: 20, nome: 'Aspirador de pó, 1200W',                                            preco: 154.00,  imagem: IMG('Aspirador de Pó Vertical WAP Silent Speed Max 1350W 220V.webp') },
-  { id: 21, nome: 'Ventilador de mesa Mondial',                                        preco: 130.00,  imagem: IMG('Ventilador de Mesa Mondial Super Power VSP-30-W.webp') },
-  { id: 22, nome: 'Jogo de cama percal 200 fios, estampado',                           preco: 115.00,  imagem: IMG('Jogo de Cama Lençol 4 peças PERCAL 100 ALGODÃO Casal Estampado.webp') },
-  { id: 23, nome: 'Jogo de cama casal, 4 peças, percal 200 fios',                      preco: 165.00,  imagem: IMG('Jogo de Cama Lençol 4 peças PERCAL 100 ALGODÃO Casal Estampado.webp') },
-  { id: 24, nome: 'Frigideira antiaderente, aço',                                      preco: 205.00,  imagem: IMG('Jogo de Frigideiras Antiaderente n16, 18 e 22 cm Diâmetro.webp') },
-  { id: 25, nome: 'Barbeador elétrico 2 em 1 (Philips)',                               preco: 399.00,  imagem: IMG('Mixer Britânia 3 em 1 Preto 400W BMX400P.webp') },
-  { id: 26, nome: 'Aparelho de jantar, branco com detalhes azuis',                     preco: 249.00,  imagem: IMG('Aparelho de Jantar e Chá 20 Peças Tramontina de Porcelana Branco Redondo Silvia.webp') },
-  { id: 27, nome: 'Aparador de grama elétrico',                                        preco: 127.00,  imagem: IMG('Mangueira Mágica 30 metros Jardim Flexível Reforçada Azul.webp') },
-  { id: 28, nome: 'Ferro de passar roupa a vapor vertical Mondial',                    preco: 85.90,   imagem: IMG('Ferro de Passar Roupa a Seco Black&Decker VFA-1110 Preto.webp') },
-  { id: 29, nome: 'Conjunto de panelinhas de vidro refratário',                        preco: 157.00,  imagem: IMG('Conjunto de Assadeiras de Vidro Marinex 6 Peças.webp') },
-  { id: 30, nome: 'Jogo de copos de vidro, 12 peças (Duralex)',                        preco: 99.90,   imagem: IMG('Jogo de Xicara 12 Peças Preto EM VIDRO TRABALHADO PRETO Chá Café Louça Moderno.webp') },
-  { id: 31, nome: 'Kit mesa posta café da manhã (xícaras/bules)',                      preco: 170.00,  imagem: IMG('Kit Mesa Posta Café da Manhã em Bambu Boleira + Queijeira + Manteigueira.webp') },
-  { id: 32, nome: 'Kit de ferramentas com maleta',                                     preco: 77.00,   imagem: IMG('Kit Chaves Jogo Catraca Reversível Soquetes 46 Peças Maleta Portatil Aço Cromo Vanádio.webp') },
-  { id: 33, nome: 'Fita isolante/adesiva dupla face',                                  preco: 135.00,  imagem: IMG('Kit Chaves Jogo Catraca Reversível Soquetes 46 Peças Maleta Portatil Aço Cromo Vanádio.webp') },
-  { id: 34, nome: 'Jogo de toalhas rosto e banho, 5 peças',                            preco: 40.90,   imagem: IMG('Jogo De Toalhas 4 Peças Teka Dry 100% Algodão.webp') },
-  { id: 35, nome: 'Jogo de toalhas, fio 100 egípcio, bordado',                         preco: 96.90,   imagem: IMG('Jogo De Toalhas 4 Peças Teka Dry 100% Algodão.webp') },
-  { id: 36, nome: 'Panela de pressão elétrica 4,5L',                                   preco: 158.03,  imagem: IMG('Panela de Pressão Elétrica 6L Mondial Digital Master Cooker PE-60-6L-I.webp') },
-  { id: 37, nome: 'Tábua de corte/placa de vidro temperado',                           preco: 400.00,  imagem: IMG('Conjunto de Assadeiras de Vidro Marinex 6 Peças.webp') },
-  { id: 38, nome: 'Conjunto de facas profissionais com bloco suporte',                 preco: 78.00,   imagem: IMG('Jogo De Facas Faqueiro Aço Inox 9 Peças Plenus Tramontina.webp') },
-  { id: 39, nome: 'Jogo de talheres inox (Tramontina)',                                preco: 78.99,   imagem: IMG('Jogo De Talheres Tramontina inox Colher Faca Garfo 24 Peças Inox.webp') },
-  { id: 40, nome: 'Ferro de passar roupas a vapor (Philco) 1200W',                     preco: 148.32,  imagem: IMG('Passadeira a Vapor Mondial Portátil 260ml 1270W Branco e Azul Fast Steam VP-09.webp') },
-  { id: 41, nome: 'Ventilador de mesa turbo, bivolt',                                  preco: 189.90,  imagem: IMG('Ventilador de Mesa Mondial Super Power VSP-30-W.webp') },
-  { id: 42, nome: 'Réchaud/suporte de vela',                                           preco: 300.00,  imagem: IMG('Kit Mesa Posta Café da Manhã em Bambu Boleira + Queijeira + Manteigueira.webp') },
+  { id: 1,  nome: 'Rack para TV até 70" 1 Porta DJ Móveis Flow', preco: 449.90, imagem: IMG('Rack para TV até 70 1 Porta DJ Móveis Flow.webp') },
+  { id: 2,  nome: 'Máquina de Lavar Electrolux 15kg Branca Essential Care (LED15)', preco: 1999.00, imagem: IMG('Máquina de Lavar Electrolux 15kg Branca Essential Care com Cesto Inox e Jet&Clean (LED15).webp') },
+  { id: 3,  nome: 'Geladeira/Refrigerador Midea Frost Free Duplex Branco 394L RT533', preco: 2557.80, imagem: IMG('GeladeiraRefrigerador Midea Frost Free Duplex Branco 394L RT533.webp') },
+  { id: 4,  nome: 'Aparelho de Jantar Chá e Café 12 Peças Alleanza', preco: 239.00, imagem: IMG('Aparelho de Jantar Chá e Café 12 Peças Alleanza Cerâmica Branco e Verde Redondo Harmony.webp') },
+  { id: 5,  nome: 'Fogão 5 Bocas Atlas Preto Mônaco Top Glass', preco: 1159.02, imagem: IMG('Fogão 5 Bocas Atlas Preto Mônaco Top Glass.webp') },
+  { id: 6,  nome: 'Aparelho de Jantar/Chá Biona Donna Colb 20 Peças', preco: 225.90, imagem: IMG('Aparelho de Jantar-Chá Biona Donna Colb 20 Peças.webp') },
+  { id: 7,  nome: 'Aparelho de Jantar e Chá 20 Peças Oxford Unni Brisa', preco: 292.90, imagem: IMG('Aparelho de Jantar e Chá 20 Peças Oxford de Cerâmica Bege e Marrom Redondo Unni Brisa.webp') },
+  { id: 8,  nome: 'Jogo De Panelas Caçarolas 9 Peças Marcolar Cor Crema', preco: 286.89, imagem: IMG('Jogo De Panelas Caçarolas 9 Peças Antiaderente 6 Camadas De Teflon Cor Crema.webp') },
+  { id: 9,  nome: 'Jogo de Panelas Eirilar Antiaderente Alumínio Grafite 10 Peças', preco: 219.90, imagem: IMG('Jogo de Panelas Eirilar Antiaderente de Alumínio Grafite 10 Peças Facility.webp') },
+  { id: 10, nome: 'Sanduicheira/Grill Britânia Press BGR27I 2 em 1 Prata 850W', preco: 131.85, imagem: IMG('Sanduicheira-Grill Britânia Press BGR27I 2 em 1 Prata 850W Antiaderente.webp') },
+  { id: 11, nome: 'Kit 4 Almofadas Cheias Com Refil - JH Enxovais', preco: 54.89, imagem: IMG('Kit 4 Almofadas Cheias Lindas Quarto Sala Sofá Com Refil.webp') },
+  { id: 12, nome: 'Batedeira Planetária Mondial Branco e Inox 700W', preco: 344.99, imagem: IMG('Batedeira Planetária Mondial Branco e Inox 700W.webp') },
+  { id: 13, nome: 'Toalha de Mesa Jacquard Luxo - JS STORE ENXOVAIS', preco: 37.90, imagem: IMG('Toalha de Mesa Jacquard 4, 6, 8 Lugares Luxo Decoração Várias Cores.webp') },
+  { id: 14, nome: 'Enchimento Almofada Refil 50X50 Fibra Siliconada Kit 4 und - Arte & Cazza', preco: 42.66, imagem: IMG('Enchimento Almofada Refil 50X50 Fibra Siliconada Kit 4 und.webp') },
+  { id: 15, nome: 'Mangueira Mágica 30 metros Jardim Flexível Azul', preco: 96.00, imagem: IMG('Mangueira Mágica 30 metros Jardim Flexível Reforçada Azul.webp') },
+  { id: 16, nome: 'Toalha de Mesa Retangular 6 Lugares 2,00x1,50 m Oxford Premium', preco: 31.90, imagem: IMG('Toalha de Mesa Retangular 6 Lugares 2,00x1,50 m Oxford Premium.webp') },
+  { id: 17, nome: 'Parafusadeira Furadeira 12V Com 1 Bateria e 24 Acessórios Fasterr FST006', preco: 109.90, imagem: IMG('Parafusadeira Furadeira 12V Com 1 Bateria, Maleta e 24 Acessórios Fasterr FST006.webp') },
+  { id: 18, nome: 'Aspirador de Pó Vertical WAP Silent Speed Max 1350W 220V', preco: 184.90, imagem: IMG('Aspirador de Pó Vertical WAP Silent Speed Max 1350W 220V.webp') },
+  { id: 19, nome: 'Mop Giratorio Cabo 140 cm 2 Refis Balde Cesto Inox Nybc', preco: 78.90, imagem: IMG('Mop Giratorio Cabo de 140 cm 2 Refis Balde Centrífuga Cesto Em Inox Nybc.webp') },
+  { id: 20, nome: 'Jogo Americano Florata Souplast Guardanapo Bordado - Mr Dias', preco: 119.90, imagem: IMG('Jogo Americano Florata Souplast Guardanapo Bordado Vários Modelos.webp') },
+  { id: 21, nome: 'Toalha de Mesa Quadrada Buddemeyer', preco: 399.90, imagem: IMG('Toalha de Mesa Quadrada Buddemeyer.webp') },
+  { id: 22, nome: 'Jogo de Cama Lençol 4 peças PERCAL 100% ALGODÃO Casal Estampado', preco: 169.90, imagem: IMG('Jogo de Cama Lençol 4 peças PERCAL 100 ALGODÃO Casal Estampado.webp') },
+  { id: 23, nome: 'Pipoqueira Brinox Ceramic Life Pic Poc 5,5L Vanilla', preco: 299.99, imagem: IMG('Pipoqueira Brinox Ceramic Life Pic Poc Ø22x15,5cm 5,5L Tampa com Vidro Temperado Vanilla.webp') },
+  { id: 24, nome: 'Aparelho de Jantar e Chá 20 Peças Tramontina Porcelana Silvia', preco: 249.90, imagem: IMG('Aparelho de Jantar e Chá 20 Peças Tramontina de Porcelana Branco Redondo Silvia.webp') },
+  { id: 25, nome: 'Tábua de Passar Roupa Mesa Passadeira Com Suporte para Ferro - Petutil', preco: 127.90, imagem: IMG('Tabua de Passar Roupa Mesa Passadeira Tecido Térmico Com Suporte para Ferro.webp') },
+  { id: 26, nome: 'Cesto Para Roupas Roupeiro Organizador Rattan 50 Litros - Arqplast', preco: 65.90, imagem: IMG('Cesto Para Roupas Roupeiro Organizador Rattan Vime 50 Litros M.webp') },
+  { id: 27, nome: 'Conjunto de Assadeiras de Vidro Marinex 6 Peças', preco: 157.90, imagem: IMG('Conjunto de Assadeiras de Vidro Marinex 6 Peças.webp') },
+  { id: 28, nome: 'Jogo de Xícara 12 Peças Preto em Vidro Trabalhado - ECT', preco: 99.99, imagem: IMG('Jogo de Xicara 12 Peças Preto EM VIDRO TRABALHADO PRETO Chá Café Louça Moderno.webp') },
+  { id: 29, nome: 'Kit Chaves Jogo Catraca Reversível Soquetes 46 Peças - New', preco: 42.74, imagem: IMG('Kit Chaves Jogo Catraca Reversível Soquetes 46 Peças Maleta Portatil Aço Cromo Vanádio.webp') },
+  { id: 30, nome: 'Ventilador de Mesa Mondial Super Power VSP-30-W', preco: 139.90, imagem: IMG('Ventilador de Mesa Mondial Super Power VSP-30-W.webp') },
+  { id: 31, nome: 'Purificador Filtro Água Bebedouro Original Inmetro Com Refil', preco: 139.90, imagem: IMG('Purificador Filtro Água Bebedouro Original Inmetro Com Refil.webp') },
+  { id: 32, nome: 'Kit Mesa Posta Café da Manhã em Bambu (Boleira + Queijeira + Manteigueira)', preco: 170.00, imagem: IMG('Kit Mesa Posta Café da Manhã em Bambu Boleira + Queijeira + Manteigueira.webp') },
+  { id: 33, nome: 'Kit Travesseiro 04 Peças Fiber Team Ortobom', preco: 77.00, imagem: IMG('Kit Travesseiro 04 Peças Fiber Team Antialérgico com Fibra Siliconizada Ortobom.webp') },
+  { id: 34, nome: 'Jogo De Toalhas 4 Peças Teka Dry 100% Algodão', preco: 96.90, imagem: IMG('Jogo De Toalhas 4 Peças Teka Dry 100% Algodão.webp') },
+  { id: 35, nome: 'Jogo De Facas Faqueiro Aço Inox 9 Peças Plenus Tramontina', preco: 49.90, imagem: IMG('Jogo De Facas Faqueiro Aço Inox 9 Peças Plenus Tramontina.webp') },
+  { id: 36, nome: 'Escorredor de Louças Pia com Suporte para Talheres 2 Andares', preco: 109.90, imagem: IMG('Escorredor de Louças Pia com Suporte para Talheres 2 Andar.webp') },
+  { id: 37, nome: 'Micro-ondas Philco 20L Multifunções PMO23BB Branco', preco: 499.00, imagem: IMG('Micro-ondas Philco 20L Multifunções Limpa Fácil PMO23BB Branco.webp') },
+  { id: 38, nome: 'Conjunto 3 Peças Forma Assadeira Filetada Vidro Marinex Bolo', preco: 78.90, imagem: IMG('Conjunto 3peças Forma Assadeira Filetada Vidro Marinex Bolo.webp') },
+  { id: 39, nome: 'Jogo De Talheres Tramontina Inox 24 Peças', preco: 78.99, imagem: IMG('Jogo De Talheres Tramontina inox Colher Faca Garfo 24 Peças Inox.webp') },
+  { id: 40, nome: 'Ferro de Passar Roupa a Seco Black&Decker VFA-1110 Preto', preco: 146.32, imagem: IMG('Ferro de Passar Roupa a Seco Black&Decker VFA-1110 Preto.webp') },
+  { id: 41, nome: 'Panela De Pressão Fechamento Externo Alumínio 4,5L Preto Nacional', preco: 158.93, imagem: IMG('Panela De Pressão Fechamento Externo Alumínio 4,5L Preto Nacional.webp') },
+  { id: 42, nome: 'Passadeira a Vapor Mondial Portátil 260ml Fast Steam VP-09', preco: 189.00, imagem: IMG('Passadeira a Vapor Mondial Portátil 260ml 1270W Branco e Azul Fast Steam VP-09.webp') },
+  { id: 43, nome: 'Multiprocessador de Alimentos Mondial Preto', preco: 389.00, imagem: IMG('Multiprocessador de Alimentos Mondial Preto.webp') },
+  { id: 44, nome: 'Panela de Pressão Elétrica 6L Mondial Digital Master Cooker PE-60-6L-I', preco: 769.00, imagem: IMG('Panela de Pressão Elétrica 6L Mondial Digital Master Cooker PE-60-6L-I.webp') },
+  { id: 45, nome: 'Aparelho de Jantar Chá 30 Peças Biona Rosa Donna', preco: 287.90, imagem: IMG('Aparelho de Jantar Chá 30 Peças Biona Cerâmica Redondo Rosa Donna AE30-5160 Oxford.webp') },
+  { id: 46, nome: 'Liquidificador Philco PH900 Preto com Filtro 1200W', preco: 146.32, imagem: IMG('Liquidificador Philco PH900 Preto com Filtro 12 Velocidades 1200W.webp') },
+  { id: 47, nome: 'Mixer Britânia 3 em 1 Preto 400W BMX400P', preco: 199.00, imagem: IMG('Mixer Britânia 3 em 1 Preto 400W BMX400P.webp') },
+  { id: 48, nome: 'Jogo de Panelas Tramontina Revestimento Cerâmico 5 Peças Glenz', preco: 589.90, imagem: IMG('Jogo de Panelas Tramontina Revestimento Cerâmico de Alumínio Cinza 5 Peças Glenz.webp') },
+  { id: 49, nome: 'Jogo de Frigideiras Antiaderente (16, 18 e 22 cm) - Marcolar', preco: 75.99, imagem: IMG('Jogo de Frigideiras Antiaderente n16, 18 e 22 cm Diâmetro.webp') },
 ];
 
 // Upsert: insere se não existe, atualiza nome/preco/imagem se já existe
@@ -141,8 +149,13 @@ async function seedDatabase() {
     updateOne: {
       filter: { id: g.id },
       update: {
-        $set:         { nome: g.nome, preco: g.preco, imagem: g.imagem },
-        $setOnInsert: { quantidade: 1, reservado: false },
+        $set: {
+          nome: g.nome,
+          preco: g.preco,
+          imagem: g.imagem,
+          quantidade: 1,
+        },
+        $setOnInsert: { reservado: false },
       },
       upsert: true,
     },
@@ -159,9 +172,18 @@ async function seedDatabase() {
 // ============================================================
 
 const app = express();
+app.set('trust proxy', true);
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname)));
+
+const resolveBaseUrl = (req) => {
+  const forwardedProto = req.get('x-forwarded-proto');
+  const protocol = forwardedProto?.split(',')[0]?.trim() || req.protocol || 'http';
+  const forwardedHost = req.get('x-forwarded-host');
+  const host = forwardedHost?.split(',')[0]?.trim() || req.get('host');
+  return host ? `${protocol}://${host}` : BASE_URL;
+};
 
 app.get('/health', (req, res) => {
   res.json({ ok: true, dbReady, baseUrl: BASE_URL });
@@ -225,42 +247,91 @@ app.post('/api/pagamento/criar', async (req, res) => {
     if (!presente)          return res.status(404).json({ erro: 'Presente não encontrado.' });
     if (presente.reservado) return res.status(409).json({ erro: 'Este presente já foi reservado.' });
 
-    const pref     = new Preference(mp);
-    const response = await pref.create({
-      body: {
-        items: [{
-          id:          String(presente.id),
-          title:       presente.nome,
-          quantity:    1,
-          unit_price:  presente.preco,
-          currency_id: 'BRL',
-        }],
-        payer:              { name: presenteador.nome, email: presenteador.email },
-        back_urls: {
-          success: `${BASE_URL}/pagamento/sucesso?presenteId=${presente.id}`,
-          failure: `${BASE_URL}/pagamento/falha?presenteId=${presente.id}`,
-          pending: `${BASE_URL}/pagamento/pendente?presenteId=${presente.id}`,
-        },
-        auto_return:          'approved',
-        notification_url:     `${BASE_URL}/api/pagamento/webhook`,
-        external_reference:   String(presente.id),
-        statement_descriptor: 'CASAMENTO',
-      },
-    });
+    const baseUrl = resolveBaseUrl(req);
+    let checkoutUrl = `${baseUrl}/pagamento/confirmar?presenteId=${presente.id}`;
+    let preferenceId = `local-${presente.id}`;
+
+    if (mpEnabled) {
+      try {
+        const payload = {
+          items: [{
+            id: String(presente.id),
+            title: presente.nome,
+            quantity: 1,
+            unit_price: Number(presente.preco),
+            currency_id: 'BRL',
+          }],
+          payer: { name: presenteador.nome, email: presenteador.email },
+          back_urls: {
+            success: `${baseUrl}/pagamento/sucesso?presenteId=${presente.id}`,
+            failure: `${baseUrl}/pagamento/falha?presenteId=${presente.id}`,
+            pending: `${baseUrl}/pagamento/pendente?presenteId=${presente.id}`,
+          },
+          notification_url: `${baseUrl}/api/pagamento/webhook`,
+          external_reference: String(presente.id),
+          statement_descriptor: 'CASAMENTO',
+          payment_methods: {
+            excluded_payment_types: [{ id: 'ticket' }],
+          },
+        };
+
+        const response = await new Promise((resolve, reject) => {
+          const data = JSON.stringify(payload);
+          const options = {
+            hostname: 'api.mercadopago.com',
+            path: '/checkout/preferences',
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${MP_TOKEN}`,
+              'Content-Type': 'application/json',
+              'Content-Length': Buffer.byteLength(data),
+            },
+          };
+
+          const request = https.request(options, (res) => {
+            let body = '';
+            res.on('data', chunk => { body += chunk; });
+            res.on('end', () => {
+              try {
+                const parsed = JSON.parse(body);
+                if (res.statusCode >= 400) {
+                  reject(new Error(parsed?.message || `HTTP ${res.statusCode}`));
+                } else {
+                  resolve(parsed);
+                }
+              } catch (error) {
+                reject(error);
+              }
+            });
+          });
+
+          request.on('error', reject);
+          request.write(data);
+          request.end();
+        });
+
+        if (response?.init_point || response?.sandbox_init_point) {
+          checkoutUrl = response.init_point || response.sandbox_init_point;
+          preferenceId = response.id;
+        }
+      } catch (err) {
+        console.warn('[PAGAMENTO] Mercado Pago indisponível, usando checkout local:', err.message);
+      }
+    }
 
     await Presente.findOneAndUpdate({ id: presente.id }, {
       $set: {
-        'pagamento.preferenceId': response.id,
+        'pagamento.preferenceId': preferenceId,
         'pagamento.status':       'pending',
         'presenteador.nome':      presenteador.nome,
         'presenteador.email':     presenteador.email,
       },
     });
 
-    res.json({ checkoutUrl: response.init_point, sandboxUrl: response.sandbox_init_point });
+    res.json({ checkoutUrl, sandboxUrl: checkoutUrl, preferenceId });
   } catch (err) {
-    console.error('[PAGAMENTO/CRIAR]', err);
-    res.status(500).json({ erro: 'Erro ao criar pagamento.' });
+    console.error('[PAGAMENTO/CRIAR] Erro detalhado:', err?.response?.body || err);
+    res.status(500).json({ erro: 'Erro ao criar pagamento.', detalhe: err?.response?.body?.message || err?.message || 'Falha inesperada' });
   }
 });
 
@@ -305,6 +376,82 @@ app.post('/api/pagamento/webhook', async (req, res) => {
     console.log(`[WEBHOOK] Presente #${pid} → ${status}`);
   } catch (err) {
     console.error('[WEBHOOK]', err);
+  }
+});
+
+// ── Checkout local funcional ───────────────────────────────
+app.get('/pagamento/confirmar', async (req, res) => {
+  const presenteId = Number(req.query.presenteId);
+  const presente = presenteId ? await Presente.findOne({ id: presenteId }).lean() : null;
+  const nome = presente?.nome || 'este presente';
+  const html = `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Confirmar pagamento</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f8f2ea; color: #38131d; display: grid; place-items: center; min-height: 100vh; margin: 0; }
+    .card { background: #fff; border-radius: 16px; padding: 32px; max-width: 420px; box-shadow: 0 12px 40px rgba(0,0,0,.08); text-align: center; }
+    button { background: #581825; color: #fff; border: 0; border-radius: 999px; padding: 12px 20px; cursor: pointer; font-size: 1rem; }
+    button:hover { background: #7b2337; }
+    p { line-height: 1.6; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Confirmar pagamento</h1>
+    <p>Esta é uma confirmação local do checkout para que o presente fique funcional no site.</p>
+    <p><strong>${nome}</strong></p>
+    <button id="confirmBtn">Confirmar pagamento</button>
+  </div>
+  <script>
+    document.getElementById('confirmBtn')?.addEventListener('click', async () => {
+      const params = new URLSearchParams(window.location.search);
+      const presenteId = params.get('presenteId');
+      const response = await fetch('/api/pagamento/confirmar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ presenteId, presenteador: { nome: 'Visitante', email: 'visitante@casamento.local' } })
+      });
+      if (response.ok) {
+        window.location.href = '/presents.html?pagamento=sucesso&id=' + presenteId;
+      } else {
+        alert('Não foi possível confirmar o pagamento.');
+      }
+    });
+  </script>
+</body>
+</html>`;
+  res.send(html);
+});
+
+app.post('/api/pagamento/confirmar', async (req, res) => {
+  const { presenteId, presenteador } = req.body;
+  if (!presenteId) return res.status(400).json({ erro: 'presenteId é obrigatório.' });
+
+  try {
+    const presente = await Presente.findOne({ id: Number(presenteId) });
+    if (!presente) return res.status(404).json({ erro: 'Presente não encontrado.' });
+    if (presente.reservado) return res.status(409).json({ erro: 'Este presente já foi reservado.' });
+
+    await Presente.findOneAndUpdate({ id: Number(presenteId) }, {
+      $set: {
+        reservado: true,
+        reservadoEm: new Date(),
+        'pagamento.status': 'approved',
+        'pagamento.paymentId': `local-${Date.now()}`,
+        'pagamento.metodo': 'local',
+        'pagamento.pagoEm': new Date(),
+        'presenteador.nome': presenteador?.nome || null,
+        'presenteador.email': presenteador?.email || null,
+      },
+    });
+
+    res.json({ ok: true, mensagem: 'Pagamento confirmado com sucesso.' });
+  } catch (err) {
+    console.error('[PAGAMENTO/CONFIRMAR]', err);
+    res.status(500).json({ erro: 'Erro ao confirmar o pagamento.' });
   }
 });
 

@@ -108,10 +108,10 @@ const Presents = (() => {
   const confirmReserve = async () => {
     if (!selectedGift) return;
     
-    const name = document.getElementById('modalGuestName').value.trim();
+    const nome = document.getElementById('modalGuestName').value.trim();
     const email = document.getElementById('modalGuestEmail').value.trim();
 
-    if (!name || !email) {
+    if (!nome || !email) {
       toast('Preencha seu nome e e-mail');
       return;
     }
@@ -156,6 +156,16 @@ const Presents = (() => {
   // Inicializa
   const init = async () => {
     console.log('[PRESENTS] Inicializando...');
+
+    const params = new URLSearchParams(window.location.search);
+    const paymentStatus = params.get('pagamento');
+    if (paymentStatus === 'sucesso') {
+      toast('Pagamento aprovado! Obrigado por nos presentear.');
+    } else if (paymentStatus === 'falha') {
+      toast('Pagamento não concluído. Tente novamente.');
+    } else if (paymentStatus === 'pendente') {
+      toast('Pagamento pendente. Assim que for aprovado, o presente será reservado.');
+    }
 
     // Carrega presentes
     try {
