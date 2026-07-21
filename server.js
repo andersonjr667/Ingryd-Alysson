@@ -433,7 +433,7 @@ app.post('/api/pagamento/contribuicao', async (req, res) => {
   }
 
   const baseUrl = resolveBaseUrl(req);
-  const title = 'Contribuição para o casamento Ingyd & Alysson';
+  const title = 'Contribuição para o casamento Ingryd & Alysson';
   let checkoutUrl = `${baseUrl}/presents?pagamento=sucesso&contribuicao=1`;
   let preferenceId = `local-contribuicao-${Date.now()}`;
   let paymentMode = 'local';
