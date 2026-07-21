@@ -29,18 +29,57 @@ const App = (() => {
       updateActiveLink();
     };
 
-    ham?.addEventListener('click', () => {
-      ham.classList.toggle('open');
-      menu?.classList.toggle('open');
-      document.body.style.overflow = menu?.classList.contains('open') ? 'hidden' : '';
+    /** Abre/fecha o menu hamburger */
+    const toggleMenu = (forceClose = false) => {
+      const isOpen = menu?.classList.contains('open');
+      // Se forceClose for true, sempre fecha
+      if (forceClose && !isOpen) return;
+
+      const willOpen = forceClose ? false : !isOpen;
+
+      ham?.classList.toggle('open', willOpen);
+      menu?.classList.toggle('open', willOpen);
+      ham?.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+
+      // Scroll lock com suporte a iOS (position: fixed + top)
+      if (willOpen) {
+        const scrollY = window.scrollY;
+        document.documentElement.style.setProperty('--scroll-y', `-${scrollY}px`);
+        document.body.classList.add('no-scroll');
+        document.body.style.top = `-${scrollY}px`;
+      } else {
+        const top = parseInt(document.body.style.top || '0') * -1;
+        document.body.classList.remove('no-scroll');
+        document.body.style.top = '';
+        window.scrollTo(0, top || 0);
+      }
+    };
+
+    /** Fecha o menu e restaura o scroll */
+    const closeMenu = () => toggleMenu(true);
+
+    // Click no hamburger
+    ham?.addEventListener('click', () => toggleMenu());
+
+    // Fechar ao clicar em qualquer link do menu
+    links.forEach(a => {
+      a.addEventListener('click', closeMenu);
     });
 
-    links.forEach(a => {
-      a.addEventListener('click', () => {
-        ham?.classList.remove('open');
-        menu?.classList.remove('open');
-        document.body.style.overflow = '';
-      });
+    // Fechar com tecla Escape
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && menu?.classList.contains('open')) {
+        closeMenu();
+        ham?.focus();
+      }
+    });
+
+    // Fechar ao clicar no backdrop (overlay)
+    menu?.addEventListener('click', e => {
+      // Se clicou exatamente no menu (não nos filhos), é o backdrop
+      if (e.target === menu) {
+        closeMenu();
+      }
     });
 
     window.addEventListener('scroll', onScroll, { passive: true });
