@@ -3,14 +3,17 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Lista de Presentes — Alysson &amp; Ingyd</title>
-  <meta name="description" content="Escolha um presente especial para abençoar o novo lar de Alysson e Ingyd. Confira nossa lista completa." />
+  <title>Lista de Presentes — Ingyd &amp; Alysson</title>
+  <meta name="description" content="Escolha um presente especial ou faça uma contribuição para abraçar o novo lar de Ingyd e Alysson. Confira a lista completa e reserve o seu." />
   <meta name="theme-color" content="#581825" />
+  <link rel="canonical" href="/presents.html" />
 
   <!-- Open Graph -->
-  <meta property="og:title"       content="Lista de Presentes — Alysson &amp; Ingyd" />
-  <meta property="og:description" content="Escolha um presente especial para abençoar o novo lar de Alysson e Ingyd." />
+  <meta property="og:title"       content="Lista de Presentes — Ingyd &amp; Alysson" />
+  <meta property="og:description" content="Escolha um presente especial ou faça uma contribuição para abraçar o novo lar de Ingyd e Alysson. Confira a lista completa e reserve o seu." />
   <meta property="og:type"        content="website" />
+  <meta property="og:image"       content="/images/image.png" />
+  <meta property="og:url"         content="/presents.html" />
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="images/favicon/favicon.png" />
@@ -30,16 +33,19 @@
   <!-- ===== NAVBAR ===== -->
   <nav class="nav" id="nav" role="navigation" aria-label="Menu principal">
     <div class="nav-bar">
-      <a href="index.html" class="nav-brand" aria-label="Voltar ao início">A &amp; I</a>
+      <a href="/" class="nav-brand" aria-label="Início">
+        <img src="images/favicon/favicon.png" alt="" aria-hidden="true" class="nav-favicon" />
+        Ingyd &amp; Alysson
+      </a>
       <button class="ham" id="ham" aria-label="Abrir menu" aria-expanded="false" aria-controls="navMenu">
         <span></span><span></span><span></span>
       </button>
       <ul class="nav-menu" id="navMenu" role="menubar">
-        <li role="none"><a href="index.html"           role="menuitem">Início</a></li>
-        <li role="none"><a href="index.html#convite"   role="menuitem">Convite</a></li>
-        <li role="none"><a href="index.html#historia"  role="menuitem">História</a></li>
-        <li role="none"><a href="index.html#datas"     role="menuitem">Datas</a></li>
-        <li role="none"><a href="presents.html" class="active" role="menuitem">Presentes</a></li>
+        <li role="none"><a href="/"           role="menuitem">Início</a></li>
+        <li role="none"><a href="/#convite"   role="menuitem">Convite</a></li>
+        <li role="none"><a href="/#historia"  role="menuitem">História</a></li>
+        <li role="none"><a href="/#datas"     role="menuitem">Datas</a></li>
+        <li role="none"><a href="/presents" class="active" role="menuitem">Presentes</a></li>
       </ul>
     </div>
   </nav>
@@ -68,6 +74,28 @@
       </div>
     </div>
   </header>
+
+  <!-- ===== CONTRIBUIÇÃO POR PIX ===== -->
+  <section class="contribution-section" id="contribuicao" aria-labelledby="contribuicao-title">
+    <div class="contribution-card">
+      <div class="contribution-copy">
+        <p class="sec-pre">Contribuição</p>
+        <h2 id="contribuicao-title">Que tal ajudar com um valor?</h2>
+        <p>Se você preferir contribuir com dinheiro, preencha o valor abaixo e use o Pix para nos presentear com uma contribuição especial.</p>
+      </div>
+
+      <form class="contribution-form" id="contributionForm">
+        <label class="sr-only" for="contributionAmount">Valor da contribuição</label>
+        <div class="contribution-input-wrap">
+          <span class="currency">R$</span>
+          <input type="number" min="1" step="0.01" id="contributionAmount" placeholder="100,00" required />
+        </div>
+        <button type="submit" class="btn btn-p" id="contributionSubmitBtn">Contribuir com Mercado Pago</button>
+      </form>
+
+      <p class="contribution-hint">Você será redirecionado para o Mercado Pago para concluir o pagamento via Pix, cartão ou boleto.</p>
+    </div>
+  </section>
 
   <!-- ===== FILTROS ===== -->
   <div class="filters-bar" role="toolbar" aria-label="Filtros">
@@ -143,17 +171,17 @@
 
   <!-- ===== FOOTER ===== -->
   <footer class="footer" role="contentinfo">
-    <p class="footer-names">Alysson &amp; Ingyd</p>
+    <p class="footer-names">Ingyd &amp; Alysson</p>
     <p class="footer-date">DD &middot; MM &middot; AAAA</p>
     <p class="footer-verse">
       "Sobre tudo isto, porém, esteja o amor, que é o vínculo da perfeição."
       <br />— Colossenses 3:14
     </p>
     <nav class="footer-links" aria-label="Links do rodapé">
-      <a href="index.html">Início</a>
-      <a href="index.html#convite">Convite</a>
-      <a href="index.html#historia">História</a>
-      <a href="presents.html">Presentes</a>
+      <a href="/">Início</a>
+      <a href="/#convite">Convite</a>
+      <a href="/#historia">História</a>
+      <a href="/presents">Presentes</a>
     </nav>
     <p class="footer-copy">Feito com carinho para celebrar esse momento único</p>
   </footer>

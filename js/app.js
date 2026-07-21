@@ -5,27 +5,28 @@
 const App = (() => {
   /* --- NAVBAR --- */
   const initNav = () => {
-    const nav     = document.getElementById('nav');
-    const ham     = document.getElementById('ham');
-    const menu    = document.getElementById('navMenu');
-    const links   = menu?.querySelectorAll('a') ?? [];
+    const nav      = document.getElementById('nav');
+    const ham      = document.getElementById('ham');
+    const menu     = document.getElementById('navMenu');
+    const links    = menu?.querySelectorAll('a') ?? [];
     const sections = document.querySelectorAll('section[id]');
+    const hasScrollSections = sections.length > 0;
 
     if (!nav) return;
 
-    const onScroll = () => {
-      nav.classList.toggle('scrolled', window.scrollY > 40);
-      updateActiveLink();
-    };
-
     const updateActiveLink = () => {
+      if (!hasScrollSections) return;
       const pos = window.scrollY + 100;
       sections.forEach(sec => {
         const link = menu?.querySelector(`a[href="#${sec.id}"]`);
         if (!link) return;
-        const active = pos >= sec.offsetTop && pos < sec.offsetTop + sec.offsetHeight;
-        link.classList.toggle('active', active);
+        link.classList.toggle('active', pos >= sec.offsetTop && pos < sec.offsetTop + sec.offsetHeight);
       });
+    };
+
+    const onScroll = () => {
+      nav.classList.toggle('scrolled', window.scrollY > 40);
+      updateActiveLink();
     };
 
     ham?.addEventListener('click', () => {

@@ -153,14 +153,57 @@ const Presents = (() => {
     }
   };
 
+  // Contribuição via Mercado Pago
+  const initContributionSection = () => {
+    const form = document.getElementById('contributionForm');
+    const amountInput = document.getElementById('contributionAmount');
+    const submitBtn = document.getElementById('contributionSubmitBtn');
+
+    if (!form || !amountInput || !submitBtn) return;
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const value = Number(amountInput.value || 0);
+
+      if (!Number.isFinite(value) || value <= 0) {
+        toast('Informe um valor maior que zero.');
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Aguarde…';
+
+      try {
+        const response = await fetch('/api/pagamento/contribuicao', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ valor: value })
+        });
+
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.erro || 'Erro ao gerar pagamento');
+
+        window.location.href = data.checkoutUrl;
+      } catch (error) {
+        toast(error.message || 'Não foi possível gerar o pagamento.');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Contribuir com Mercado Pago';
+      }
+    });
+  };
+
   // Inicializa
   const init = async () => {
     console.log('[PRESENTS] Inicializando...');
 
     const params = new URLSearchParams(window.location.search);
     const paymentStatus = params.get('pagamento');
-    if (paymentStatus === 'sucesso') {
-      toast('Pagamento aprovado! Obrigado por nos presentear.');
+    const isContribution = params.get('contribuicao') === '1';
+
+    if (paymentStatus === 'sucesso' && isContribution) {
+      toast('Contribuição registrada com sucesso! Obrigado.');
+    } else if (paymentStatus === 'sucesso') {
+      toast('Presente reservado com sucesso! Obrigado.');
     } else if (paymentStatus === 'falha') {
       toast('Pagamento não concluído. Tente novamente.');
     } else if (paymentStatus === 'pendente') {
@@ -217,6 +260,8 @@ const Presents = (() => {
     document.addEventListener('keydown', e => {
       if (e.key === 'Escape') closeModal();
     });
+
+    initContributionSection();
 
     console.log('[PRESENTS] ✅ Pronto!');
   };

@@ -197,6 +197,41 @@
   font-style: italic;
 }
 
+/* ── PRESENTES / CONTRIBUIÇÕES ──────────────────────────── */
+.gifts-home-section {
+  padding-top: 24px;
+}
+.gifts-home-cards {
+  display: grid;
+  gap: 20px;
+  margin-top: 32px;
+}
+.gifts-home-card {
+  background: var(--c-card);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-l);
+  padding: 28px;
+  box-shadow: var(--shadow-s);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.gifts-home-card h3 {
+  font-family: var(--f-serif);
+  font-size: 1.35rem;
+  color: var(--c-primary);
+}
+.gifts-home-card p {
+  color: var(--c-text-soft);
+  line-height: 1.8;
+  flex: 1;
+}
+@media (min-width: 768px) {
+  .gifts-home-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 /* ── GALERIA EDITORIAL ────────────────────────────────────── */
 .gallery-section {
   display: flex;

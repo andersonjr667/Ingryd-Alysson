@@ -230,6 +230,85 @@
 }
 .gift-footer .btn { font-size: 0.82rem; padding: 11px 20px; }
 
+/* --- CONTRIBUIÇÃO POR PIX --- */
+.contribution-section {
+  padding: 0 20px 80px;
+}
+.contribution-card {
+  max-width: 860px;
+  margin: 0 auto;
+  background: var(--c-card);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-l);
+  box-shadow: var(--shadow-s);
+  padding: 32px;
+  display: grid;
+  gap: 20px;
+}
+.contribution-copy h2 {
+  font-family: var(--f-serif);
+  font-size: clamp(1.6rem, 3vw, 2.1rem);
+  color: var(--c-primary);
+  margin: 8px 0 12px;
+}
+.contribution-copy p:last-child {
+  color: var(--c-text-soft);
+  line-height: 1.8;
+}
+.contribution-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.contribution-input-wrap {
+  display: flex;
+  align-items: center;
+  border: 1.5px solid var(--c-border);
+  border-radius: var(--r-m);
+  background: var(--c-bg);
+  padding: 0 16px;
+}
+.currency {
+  color: var(--c-primary);
+  font-weight: 600;
+  margin-right: 8px;
+}
+.contribution-input-wrap input {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--c-text);
+  padding: 14px 0;
+  font-size: 1rem;
+}
+.contribution-hint {
+  font-size: 0.82rem;
+  color: var(--c-text-soft);
+  line-height: 1.6;
+  margin-top: 4px;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+@media (min-width: 768px) {
+  .contribution-form {
+    flex-direction: row;
+    align-items: center;
+  }
+  .contribution-input-wrap {
+    flex: 1;
+  }
+}
+
 /* --- MODAL DE CONFIRMAÇÃO --- */
 .modal-overlay {
   position: fixed;

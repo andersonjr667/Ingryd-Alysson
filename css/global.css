@@ -183,6 +183,15 @@ ul { list-style: none; }
   color: var(--c-primary);
   font-weight: 500;
   letter-spacing: 0.06em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.nav-favicon {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  border-radius: 50%;
 }
 .ham {
   display: flex;
@@ -231,8 +240,8 @@ ul { list-style: none; }
 .nav-menu a:hover, .nav-menu a.active { color: var(--c-primary); }
 
 @media (min-width: 769px) {
-  .nav-bar { height: 72px; padding: 0 48px; justify-content: center; }
-  .nav-brand, .ham { display: none; }
+  .nav-bar { height: 72px; padding: 0 48px; justify-content: space-between; }
+  .ham { display: none; }
   .nav-menu {
     position: static;
     transform: none;

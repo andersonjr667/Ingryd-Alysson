@@ -172,7 +172,77 @@ const fallbackGifts = GIFTS_SEED.map(g => ({
   reservadoEm: null,
 }));
 
-const isPublicBaseUrl = (url) => /^https:\/\//i.test(url) && !/(localhost|127\.0\.0\.1|0\.0\.0\.0)/i.test(url);
+const isCheckoutEligibleBaseUrl = (url) => {
+  if (!url) return false;
+  return /^https:\/\//i.test(url) || /localhost|127\.0\.0\.1|0\.0\.0\.0/i.test(url);
+};
+
+async function createMercadoPagoCheckoutLink({ title, unitPrice, baseUrl, externalReference, payerName = 'Contribuinte', payerEmail = 'contribuinte@casamento.local' }) {
+  if (!mpEnabled || !isCheckoutEligibleBaseUrl(baseUrl)) return null;
+
+  const payload = {
+    items: [{
+      id: String(externalReference),
+      title,
+      quantity: 1,
+      unit_price: Number(unitPrice),
+      currency_id: 'BRL',
+    }],
+    payer: { name: payerName, email: payerEmail },
+    back_urls: {
+      success: `${baseUrl}/pagamento/sucesso?presenteId=${encodeURIComponent(externalReference)}`,
+      failure: `${baseUrl}/pagamento/falha?presenteId=${encodeURIComponent(externalReference)}`,
+      pending: `${baseUrl}/pagamento/pendente?presenteId=${encodeURIComponent(externalReference)}`,
+    },
+    notification_url: `${baseUrl}/api/pagamento/webhook`,
+    external_reference: String(externalReference),
+    statement_descriptor: 'CASAMENTO',
+  };
+
+  const response = await new Promise((resolve, reject) => {
+    const data = JSON.stringify(payload);
+    const options = {
+      hostname: 'api.mercadopago.com',
+      path: '/checkout/preferences',
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${MP_TOKEN}`,
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(data),
+      },
+    };
+
+    const request = https.request(options, (res) => {
+      let body = '';
+      res.on('data', chunk => { body += chunk; });
+      res.on('end', () => {
+        try {
+          const parsed = JSON.parse(body);
+          if (res.statusCode >= 400) {
+            reject(new Error(parsed?.message || `HTTP ${res.statusCode}`));
+          } else {
+            resolve(parsed);
+          }
+        } catch (error) {
+          reject(error);
+        }
+      });
+    });
+
+    request.on('error', reject);
+    request.write(data);
+    request.end();
+  });
+
+  if (response?.init_point || response?.sandbox_init_point) {
+    return {
+      checkoutUrl: response.init_point || response.sandbox_init_point,
+      preferenceId: response.id,
+    };
+  }
+
+  return null;
+}
 
 // Upsert: insere se não existe, atualiza nome/preco/imagem se já existe
 // Nunca toca em reservado/pagamento/presenteador
@@ -216,6 +286,8 @@ const resolveBaseUrl = (req) => {
   const host = forwardedHost?.split(',')[0]?.trim() || req.get('host');
   return host ? `${protocol}://${host}` : BASE_URL;
 };
+
+app.get('/presents', (req, res) => res.sendFile(path.join(__dirname, 'presents.html')));
 
 app.get('/health', (req, res) => {
   res.json({ ok: true, dbReady, baseUrl: BASE_URL });
@@ -282,65 +354,20 @@ app.post('/api/pagamento/criar', async (req, res) => {
     let checkoutUrl = `${baseUrl}/pagamento/confirmar?presenteId=${presente.id}`;
     let preferenceId = `local-${presente.id}`;
 
-    if (mpEnabled && isPublicBaseUrl(baseUrl)) {
+    if (mpEnabled && isCheckoutEligibleBaseUrl(baseUrl)) {
       try {
-        const payload = {
-          items: [{
-            id: String(presente.id),
-            title: presente.nome,
-            quantity: 1,
-            unit_price: Number(presente.preco),
-            currency_id: 'BRL',
-          }],
-          payer: { name: presenteador.nome, email: presenteador.email },
-          back_urls: {
-            success: `${baseUrl}/pagamento/sucesso?presenteId=${presente.id}`,
-            failure: `${baseUrl}/pagamento/falha?presenteId=${presente.id}`,
-            pending: `${baseUrl}/pagamento/pendente?presenteId=${presente.id}`,
-          },
-          notification_url: `${baseUrl}/api/pagamento/webhook`,
-          external_reference: String(presente.id),
-          statement_descriptor: 'CASAMENTO',
-        };
-
-        const response = await new Promise((resolve, reject) => {
-          const data = JSON.stringify(payload);
-          const options = {
-            hostname: 'api.mercadopago.com',
-            path: '/checkout/preferences',
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${MP_TOKEN}`,
-              'Content-Type': 'application/json',
-              'Content-Length': Buffer.byteLength(data),
-            },
-          };
-
-          const request = https.request(options, (res) => {
-            let body = '';
-            res.on('data', chunk => { body += chunk; });
-            res.on('end', () => {
-              try {
-                const parsed = JSON.parse(body);
-                if (res.statusCode >= 400) {
-                  reject(new Error(parsed?.message || `HTTP ${res.statusCode}`));
-                } else {
-                  resolve(parsed);
-                }
-              } catch (error) {
-                reject(error);
-              }
-            });
-          });
-
-          request.on('error', reject);
-          request.write(data);
-          request.end();
+        const created = await createMercadoPagoCheckoutLink({
+          title: presente.nome,
+          unitPrice: presente.preco,
+          baseUrl,
+          externalReference: presente.id,
+          payerName: presenteador.nome,
+          payerEmail: presenteador.email,
         });
 
-        if (response?.init_point || response?.sandbox_init_point) {
-          checkoutUrl = response.init_point || response.sandbox_init_point;
-          preferenceId = response.id;
+        if (created) {
+          checkoutUrl = created.checkoutUrl;
+          preferenceId = created.preferenceId;
         }
       } catch (err) {
         console.warn('[PAGAMENTO] Mercado Pago indisponível, usando checkout local:', err.message);
@@ -394,6 +421,53 @@ app.post('/api/pagamento/criar', async (req, res) => {
     console.error('[PAGAMENTO/CRIAR] Erro detalhado:', err?.response?.body || err);
     res.status(500).json({ erro: 'Erro ao criar pagamento.', detalhe: err?.message || 'Falha inesperada' });
   }
+});
+
+// ── POST /api/pagamento/contribuicao ─────────────────────
+app.post('/api/pagamento/contribuicao', async (req, res) => {
+  const { valor, nome, email } = req.body;
+  const amount = Number(valor);
+
+  if (!Number.isFinite(amount) || amount <= 0) {
+    return res.status(400).json({ erro: 'Informe um valor válido maior que zero.' });
+  }
+
+  const baseUrl = resolveBaseUrl(req);
+  const title = 'Contribuição para o casamento Ingyd & Alysson';
+  let checkoutUrl = `${baseUrl}/presents?pagamento=sucesso&contribuicao=1`;
+  let preferenceId = `local-contribuicao-${Date.now()}`;
+  let paymentMode = 'local';
+
+  try {
+    const created = await createMercadoPagoCheckoutLink({
+      title,
+      unitPrice: amount,
+      baseUrl,
+      externalReference: `contribuicao-${Date.now()}`,
+      payerName: nome || 'Contribuinte',
+      payerEmail: email || 'contribuinte@casamento.local',
+    });
+
+    if (created) {
+      checkoutUrl = created.checkoutUrl;
+      preferenceId = created.preferenceId;
+      paymentMode = 'mercadopago';
+    }
+  } catch (err) {
+    console.warn('[PAGAMENTO/CONTRIBUICAO] Falha ao gerar cobrança:', err.message);
+  }
+
+  res.json({
+    checkoutUrl,
+    sandboxUrl: checkoutUrl,
+    preferenceId,
+    valor: amount,
+    tipo: 'contribuicao',
+    paymentMode,
+    mensagem: paymentMode === 'mercadopago'
+      ? 'Cobrança criada com sucesso no Mercado Pago.'
+      : 'Cobrança local criada com sucesso. Você será redirecionado para a confirmação.'
+  });
 });
 
 // ── POST /api/pagamento/webhook ─────────────────────────────
@@ -561,16 +635,23 @@ app.get('/api/pagamento/confirmar', async (req, res) => {
   });
 
   if (result.status === 200) {
-    return res.redirect(`/presents.html?pagamento=sucesso&id=${encodeURIComponent(req.query.presenteId || '')}`);
+    return res.redirect(`/presents?pagamento=sucesso&id=${encodeURIComponent(req.query.presenteId || '')}`);
   }
 
   res.status(result.status).json(result.payload);
 });
 
 // ── Retornos do Mercado Pago ────────────────────────────────
-app.get('/pagamento/sucesso',  (req, res) => res.redirect(`/presents.html?pagamento=sucesso&id=${req.query.presenteId  || ''}`));
-app.get('/pagamento/falha',    (req, res) => res.redirect(`/presents.html?pagamento=falha&id=${req.query.presenteId    || ''}`));
-app.get('/pagamento/pendente', (req, res) => res.redirect(`/presents.html?pagamento=pendente&id=${req.query.presenteId || ''}`));
+app.get('/pagamento/sucesso', (req, res) => {
+  const id = req.query.presenteId || '';
+  const isContrib = String(id).startsWith('contribuicao');
+  const dest = isContrib
+    ? '/presents?pagamento=sucesso&contribuicao=1'
+    : `/presents?pagamento=sucesso&id=${encodeURIComponent(id)}`;
+  res.redirect(dest);
+});
+app.get('/pagamento/falha',    (req, res) => res.redirect(`/presents?pagamento=falha&id=${encodeURIComponent(req.query.presenteId    || '')}`));
+app.get('/pagamento/pendente', (req, res) => res.redirect(`/presents?pagamento=pendente&id=${encodeURIComponent(req.query.presenteId || '')}`));
 
 // ── GET /api/estoque ────────────────────────────────────────
 app.get('/api/estoque', async (req, res) => {
