@@ -464,8 +464,8 @@ app.get('/pagamento/confirmar', async (req, res) => {
   <style>
     body { font-family: Arial, sans-serif; background: #f8f2ea; color: #38131d; display: grid; place-items: center; min-height: 100vh; margin: 0; }
     .card { background: #fff; border-radius: 16px; padding: 32px; max-width: 420px; box-shadow: 0 12px 40px rgba(0,0,0,.08); text-align: center; }
-    button { background: #581825; color: #fff; border: 0; border-radius: 999px; padding: 12px 20px; cursor: pointer; font-size: 1rem; }
-    button:hover { background: #7b2337; }
+    a { display: inline-block; background: #581825; color: #fff; text-decoration: none; border-radius: 999px; padding: 12px 20px; margin-top: 12px; }
+    a:hover { background: #7b2337; }
     p { line-height: 1.6; }
   </style>
 </head>
@@ -474,39 +474,22 @@ app.get('/pagamento/confirmar', async (req, res) => {
     <h1>Confirmar pagamento</h1>
     <p>Esta é uma confirmação local do checkout para que o presente fique funcional no site.</p>
     <p><strong>${nome}</strong></p>
-    <button id="confirmBtn">Confirmar pagamento</button>
+    <a href="/api/pagamento/confirmar?presenteId=${presenteId}">Confirmar pagamento</a>
   </div>
-  <script>
-    document.getElementById('confirmBtn')?.addEventListener('click', async () => {
-      const params = new URLSearchParams(window.location.search);
-      const presenteId = params.get('presenteId');
-      const response = await fetch('/api/pagamento/confirmar', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ presenteId, presenteador: { nome: 'Visitante', email: 'visitante@casamento.local' } })
-      });
-      if (response.ok) {
-        window.location.href = '/presents.html?pagamento=sucesso&id=' + presenteId;
-      } else {
-        alert('Não foi possível confirmar o pagamento.');
-      }
-    });
-  </script>
 </body>
 </html>`;
   res.send(html);
 });
 
-app.post('/api/pagamento/confirmar', async (req, res) => {
-  const { presenteId, presenteador } = req.body;
-  if (!presenteId) return res.status(400).json({ erro: 'presenteId é obrigatório.' });
+async function confirmarPagamento({ presenteId, presenteador }) {
+  if (!presenteId) return { status: 400, payload: { erro: 'presenteId é obrigatório.' } };
 
   try {
     const giftId = Number(presenteId);
     let presente = dbReady ? await Presente.findOne({ id: giftId }).lean() : null;
     if (!presente) presente = getFallbackGift(giftId);
-    if (!presente) return res.status(404).json({ erro: 'Presente não encontrado.' });
-    if (presente.reservado) return res.status(409).json({ erro: 'Este presente já foi reservado.' });
+    if (!presente) return { status: 404, payload: { erro: 'Presente não encontrado.' } };
+    if (presente.reservado) return { status: 409, payload: { erro: 'Este presente já foi reservado.' } };
 
     if (dbReady) {
       try {
@@ -558,11 +541,30 @@ app.post('/api/pagamento/confirmar', async (req, res) => {
       });
     }
 
-    res.json({ ok: true, mensagem: 'Pagamento confirmado com sucesso.' });
+    return { status: 200, payload: { ok: true, mensagem: 'Pagamento confirmado com sucesso.' } };
   } catch (err) {
     console.error('[PAGAMENTO/CONFIRMAR]', err);
-    res.status(500).json({ erro: 'Erro ao confirmar o pagamento.' });
+    return { status: 500, payload: { erro: 'Erro ao confirmar o pagamento.' } };
   }
+}
+
+app.post('/api/pagamento/confirmar', async (req, res) => {
+  const { presenteId, presenteador } = req.body;
+  const result = await confirmarPagamento({ presenteId, presenteador });
+  res.status(result.status).json(result.payload);
+});
+
+app.get('/api/pagamento/confirmar', async (req, res) => {
+  const result = await confirmarPagamento({
+    presenteId: req.query.presenteId,
+    presenteador: { nome: 'Visitante', email: 'visitante@casamento.local' },
+  });
+
+  if (result.status === 200) {
+    return res.redirect(`/presents.html?pagamento=sucesso&id=${encodeURIComponent(req.query.presenteId || '')}`);
+  }
+
+  res.status(result.status).json(result.payload);
 });
 
 // ── Retornos do Mercado Pago ────────────────────────────────
