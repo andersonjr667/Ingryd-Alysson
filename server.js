@@ -84,6 +84,18 @@ const normalizeGift = (gift) => ({
   },
 });
 
+const getFallbackGift = (id) => {
+  const gift = fallbackGifts.find(g => g.id === id);
+  return gift ? normalizeGift(gift) : null;
+};
+
+const updateFallbackGift = (id, patch) => {
+  const index = fallbackGifts.findIndex(g => g.id === id);
+  if (index === -1) return null;
+  fallbackGifts[index] = normalizeGift({ ...fallbackGifts[index], ...patch });
+  return fallbackGifts[index];
+};
+
 // ============================================================
 // SEED — upsert: insere novos E atualiza nome/preco/imagem dos existentes
 // ============================================================
@@ -142,6 +154,26 @@ const GIFTS_SEED = [
   { id: 49, nome: 'Jogo de Frigideiras Antiaderente (16, 18 e 22 cm) - Marcolar', preco: 75.99, imagem: IMG('Jogo de Frigideiras Antiaderente n16, 18 e 22 cm Diâmetro.webp') },
 ];
 
+const fallbackGifts = GIFTS_SEED.map(g => ({
+  ...g,
+  quantidade: 1,
+  reservado: false,
+  pagamento: {
+    status: null,
+    preferenceId: null,
+    paymentId: null,
+    metodo: null,
+    pagoEm: null,
+  },
+  presenteador: {
+    nome: null,
+    email: null,
+  },
+  reservadoEm: null,
+}));
+
+const isPublicBaseUrl = (url) => /^https:\/\//i.test(url) && !/(localhost|127\.0\.0\.1|0\.0\.0\.0)/i.test(url);
+
 // Upsert: insere se não existe, atualiza nome/preco/imagem se já existe
 // Nunca toca em reservado/pagamento/presenteador
 async function seedDatabase() {
@@ -192,7 +224,7 @@ app.get('/health', (req, res) => {
 // ── GET /api/presentes ──────────────────────────────────────
 app.get('/api/presentes', async (req, res) => {
   if (!dbReady) {
-    return res.json(GIFTS_SEED.map(g => normalizeGift({ ...g, reservado: false })));
+    return res.json(fallbackGifts.map(g => normalizeGift(g)));
   }
 
   try {
@@ -240,7 +272,9 @@ app.post('/api/pagamento/criar', async (req, res) => {
     return res.status(400).json({ erro: 'presenteId, presenteador.nome e presenteador.email são obrigatórios.' });
 
   try {
-    const presente = await Presente.findOne({ id: Number(presenteId) }).lean();
+    const giftId = Number(presenteId);
+    let presente = dbReady ? await Presente.findOne({ id: giftId }).lean() : null;
+    if (!presente) presente = getFallbackGift(giftId);
     if (!presente) return res.status(404).json({ erro: 'Presente não encontrado.' });
     if (presente.reservado) return res.status(409).json({ erro: 'Este presente já foi reservado.' });
 
@@ -248,7 +282,7 @@ app.post('/api/pagamento/criar', async (req, res) => {
     let checkoutUrl = `${baseUrl}/pagamento/confirmar?presenteId=${presente.id}`;
     let preferenceId = `local-${presente.id}`;
 
-    if (mpEnabled) {
+    if (mpEnabled && isPublicBaseUrl(baseUrl)) {
       try {
         const payload = {
           items: [{
@@ -313,14 +347,47 @@ app.post('/api/pagamento/criar', async (req, res) => {
       }
     }
 
-    await Presente.findOneAndUpdate({ id: presente.id }, {
-      $set: {
-        'pagamento.preferenceId': preferenceId,
-        'pagamento.status': 'pending',
-        'presenteador.nome': presenteador.nome,
-        'presenteador.email': presenteador.email,
-      },
-    });
+    if (dbReady) {
+      try {
+        await Presente.findOneAndUpdate({ id: presente.id }, {
+          $set: {
+            'pagamento.preferenceId': preferenceId,
+            'pagamento.status': 'pending',
+            'presenteador.nome': presenteador.nome,
+            'presenteador.email': presenteador.email,
+          },
+        });
+      } catch (err) {
+        console.warn('[PAGAMENTO/CRIAR] Banco indisponível, usando fallback local:', err.message);
+        updateFallbackGift(presente.id, {
+          pagamento: {
+            status: 'pending',
+            preferenceId,
+            paymentId: null,
+            metodo: null,
+            pagoEm: null,
+          },
+          presenteador: {
+            nome: presenteador.nome,
+            email: presenteador.email,
+          },
+        });
+      }
+    } else {
+      updateFallbackGift(presente.id, {
+        pagamento: {
+          status: 'pending',
+          preferenceId,
+          paymentId: null,
+          metodo: null,
+          pagoEm: null,
+        },
+        presenteador: {
+          nome: presenteador.nome,
+          email: presenteador.email,
+        },
+      });
+    }
 
     res.json({ checkoutUrl, sandboxUrl: checkoutUrl, preferenceId });
   } catch (err) {
@@ -376,7 +443,17 @@ app.post('/api/pagamento/webhook', async (req, res) => {
 // ── Checkout local funcional ───────────────────────────────
 app.get('/pagamento/confirmar', async (req, res) => {
   const presenteId = Number(req.query.presenteId);
-  const presente = presenteId ? await Presente.findOne({ id: presenteId }).lean() : null;
+  let presente = null;
+
+  if (dbReady && presenteId) {
+    try {
+      presente = await Presente.findOne({ id: presenteId }).lean();
+    } catch (err) {
+      console.warn('[PAGAMENTO/CONFIRMAR] Falha ao buscar presente no banco:', err.message);
+    }
+  }
+
+  if (!presente) presente = getFallbackGift(presenteId);
   const nome = presente?.nome || 'este presente';
   const html = `<!DOCTYPE html>
 <html lang="pt-BR">
@@ -425,22 +502,61 @@ app.post('/api/pagamento/confirmar', async (req, res) => {
   if (!presenteId) return res.status(400).json({ erro: 'presenteId é obrigatório.' });
 
   try {
-    const presente = await Presente.findOne({ id: Number(presenteId) }).lean();
+    const giftId = Number(presenteId);
+    let presente = dbReady ? await Presente.findOne({ id: giftId }).lean() : null;
+    if (!presente) presente = getFallbackGift(giftId);
     if (!presente) return res.status(404).json({ erro: 'Presente não encontrado.' });
     if (presente.reservado) return res.status(409).json({ erro: 'Este presente já foi reservado.' });
 
-    await Presente.findOneAndUpdate({ id: Number(presenteId) }, {
-      $set: {
+    if (dbReady) {
+      try {
+        await Presente.findOneAndUpdate({ id: giftId }, {
+          $set: {
+            reservado: true,
+            reservadoEm: new Date(),
+            'pagamento.status': 'approved',
+            'pagamento.paymentId': `local-${Date.now()}`,
+            'pagamento.metodo': 'local',
+            'pagamento.pagoEm': new Date(),
+            'presenteador.nome': presenteador?.nome || null,
+            'presenteador.email': presenteador?.email || null,
+          },
+        });
+      } catch (err) {
+        console.warn('[PAGAMENTO/CONFIRMAR] Banco indisponível, usando fallback local:', err.message);
+        updateFallbackGift(giftId, {
+          reservado: true,
+          reservadoEm: new Date(),
+          pagamento: {
+            status: 'approved',
+            preferenceId: presente.pagamento?.preferenceId || null,
+            paymentId: `local-${Date.now()}`,
+            metodo: 'local',
+            pagoEm: new Date(),
+          },
+          presenteador: {
+            nome: presenteador?.nome || null,
+            email: presenteador?.email || null,
+          },
+        });
+      }
+    } else {
+      updateFallbackGift(giftId, {
         reservado: true,
         reservadoEm: new Date(),
-        'pagamento.status': 'approved',
-        'pagamento.paymentId': `local-${Date.now()}`,
-        'pagamento.metodo': 'local',
-        'pagamento.pagoEm': new Date(),
-        'presenteador.nome': presenteador?.nome || null,
-        'presenteador.email': presenteador?.email || null,
-      },
-    });
+        pagamento: {
+          status: 'approved',
+          preferenceId: presente.pagamento?.preferenceId || null,
+          paymentId: `local-${Date.now()}`,
+          metodo: 'local',
+          pagoEm: new Date(),
+        },
+        presenteador: {
+          nome: presenteador?.nome || null,
+          email: presenteador?.email || null,
+        },
+      });
+    }
 
     res.json({ ok: true, mensagem: 'Pagamento confirmado com sucesso.' });
   } catch (err) {
@@ -457,6 +573,22 @@ app.get('/pagamento/pendente', (req, res) => res.redirect(`/presents.html?pagame
 // ── GET /api/estoque ────────────────────────────────────────
 app.get('/api/estoque', async (req, res) => {
   try {
+    if (!dbReady) {
+      const total = fallbackGifts.length;
+      const reservados = fallbackGifts.filter(g => g.reservado).length;
+      const pendentes = fallbackGifts.filter(g => g.pagamento?.status === 'pending' && !g.reservado).length;
+      const valorTotal = fallbackGifts.reduce((sum, g) => sum + Number(g.preco || 0), 0);
+      const valorReservado = fallbackGifts.filter(g => g.reservado).reduce((sum, g) => sum + Number(g.preco || 0), 0);
+      return res.json({
+        total,
+        reservados,
+        disponiveis: total - reservados,
+        pendentes,
+        valorTotal,
+        valorReservado,
+      });
+    }
+
     const [total, reservados, pendentes, vTotal, vRes] = await Promise.all([
       Presente.countDocuments(),
       Presente.countDocuments({ reservado: true }),
@@ -479,8 +611,29 @@ app.get('/api/estoque', async (req, res) => {
 // ── POST /api/estoque/liberar/:id ───────────────────────────
 app.post('/api/estoque/liberar/:id', async (req, res) => {
   try {
+    const giftId = Number(req.params.id);
+    if (!dbReady) {
+      const p = updateFallbackGift(giftId, {
+        reservado: false,
+        reservadoEm: null,
+        pagamento: {
+          status: null,
+          preferenceId: null,
+          paymentId: null,
+          metodo: null,
+          pagoEm: null,
+        },
+        presenteador: {
+          nome: null,
+          email: null,
+        },
+      });
+      if (!p) return res.status(404).json({ erro: 'Presente não encontrado.' });
+      return res.json({ mensagem: 'Presente liberado.', presente: p });
+    }
+
     const p = await Presente.findOneAndUpdate(
-      { id: Number(req.params.id) },
+      { id: giftId },
       {
         $set: {
           reservado: false, reservadoEm: null,
