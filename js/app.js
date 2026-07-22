@@ -29,6 +29,12 @@ const App = (() => {
       updateActiveLink();
     };
 
+    const handleResize = () => {
+      if (window.innerWidth >= 769) {
+        closeMenu();
+      }
+    };
+
     /** Abre/fecha o menu hamburger */
     const toggleMenu = (forceClose = false) => {
       const isOpen = menu?.classList.contains('open');
@@ -83,6 +89,7 @@ const App = (() => {
     });
 
     window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', handleResize);
     onScroll();
   };
 
@@ -93,7 +100,7 @@ const App = (() => {
         const target = document.querySelector(a.getAttribute('href'));
         if (!target) return;
         e.preventDefault();
-        target.scrollIntoView({ behavior: 'smooth' });
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
       });
     });
   };
